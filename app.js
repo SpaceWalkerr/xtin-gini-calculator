@@ -1,9 +1,85 @@
 // Xtin Gini - Advanced Financial Planning Calculator
+
+// Xtin Capital Brand Colors for Charts
+const chartColors = {
+  primary: [
+    '#00A651',  // Primary green
+    '#009246',  // Darker green
+    '#00843D',  // Accent green
+    '#4CAF50',  // Light green
+    '#66BB6A',  // Lighter green
+    '#81C784',  // Soft green
+    '#00BFA5',  // Teal green
+    '#26A69A',  // Dark teal
+    '#80CBC4',  // Light teal
+    '#A5D6A7'   // Pale green
+  ],
+  single: '#00A651',
+  transparent: 'rgba(0, 166, 81, 0.1)',
+  gradient: {
+    start: 'rgba(0, 166, 81, 0.2)',
+    end: 'rgba(0, 166, 81, 0.05)'
+  }
+};
+
+// Chart.js theming based on CSS variables
+const getCssVar = (name, fallback = '') => {
+  const v = getComputedStyle(document.documentElement).getPropertyValue(name);
+  return (v && v.trim().length) ? v.trim() : fallback;
+};
+
+const initChartDefaults = () => {
+  if (typeof Chart === 'undefined') return;
+  const text = getCssVar('--color-text', '#0f172a');
+  const grid = getCssVar('--color-border', 'rgba(2, 6, 23, 0.08)');
+  const surface = getCssVar('--color-surface', '#ffffff');
+
+  // Global font and colors
+  Chart.defaults.font.family = 'Inter, Poppins, Geist, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+  Chart.defaults.color = text;
+  Chart.defaults.borderColor = grid;
+
+  // Scales and ticks
+  if (!Chart.defaults.scales.category) Chart.defaults.scales.category = {};
+  if (!Chart.defaults.scales.linear) Chart.defaults.scales.linear = {};
+  Chart.defaults.scales.category.grid = Chart.defaults.scales.category.grid || {};
+  Chart.defaults.scales.linear.grid = Chart.defaults.scales.linear.grid || {};
+  Chart.defaults.scales.category.grid.color = grid;
+  Chart.defaults.scales.linear.grid.color = grid;
+  Chart.defaults.scales.category.ticks = Chart.defaults.scales.category.ticks || {};
+  Chart.defaults.scales.linear.ticks = Chart.defaults.scales.linear.ticks || {};
+  Chart.defaults.scales.category.ticks.color = text;
+  Chart.defaults.scales.linear.ticks.color = text;
+
+  // Legend
+  Chart.defaults.plugins.legend = Chart.defaults.plugins.legend || {};
+  Chart.defaults.plugins.legend.labels = Chart.defaults.plugins.legend.labels || {};
+  Chart.defaults.plugins.legend.labels.color = text;
+
+  // Tooltip
+  Chart.defaults.plugins.tooltip = Chart.defaults.plugins.tooltip || {};
+  Chart.defaults.plugins.tooltip.backgroundColor = surface;
+  Chart.defaults.plugins.tooltip.titleColor = text;
+  Chart.defaults.plugins.tooltip.bodyColor = text;
+  Chart.defaults.plugins.tooltip.borderColor = grid;
+  Chart.defaults.plugins.tooltip.borderWidth = 1;
+
+  // Rounded bars for modern look
+  Chart.defaults.datasets = Chart.defaults.datasets || {};
+  Chart.defaults.datasets.bar = Chart.defaults.datasets.bar || {};
+  Chart.defaults.datasets.bar.borderRadius = 8;
+};
+
 // State Management
 const appState = {
   assets: [],
   liabilities: [],
   goals: [],
+  settings: {
+    sipTiming: 'due', // 'due' (start of month) or 'ordinary' (end of month)
+    mcMonthlySteps: true,
+    mcLognormal: true,
+  },
   userProfile: {
     currentAge: 35,
     retirementAge: 60,
@@ -32,11 +108,19 @@ const utils = {
     return pv * Math.pow(1 + rate / 100, years);
   },
   
-  calculateSIP: (monthlyAmount, rate, years) => {
+  // Future value factor for SIP given timing
+  sipFVFactor: (monthlyRate, months, timing = appState.settings.sipTiming) => {
+    if (months <= 0) return 0;
+    if (monthlyRate === 0) return months; // linear accumulation
+    const base = (Math.pow(1 + monthlyRate, months) - 1) / monthlyRate;
+    return timing === 'due' ? base * (1 + monthlyRate) : base; // due: deposit at start
+  },
+
+  calculateSIP: (monthlyAmount, rate, years, timing = appState.settings.sipTiming) => {
     const monthlyRate = rate / 12 / 100;
-    const months = years * 12;
-    if (monthlyRate === 0) return monthlyAmount * months;
-    return monthlyAmount * (Math.pow(1 + monthlyRate, months) - 1) / monthlyRate * (1 + monthlyRate);
+    const months = Math.max(0, Math.floor(years * 12));
+    const factor = utils.sipFVFactor(monthlyRate, months, timing);
+    return monthlyAmount * factor;
   },
   
   calculateEMI: (principal, rate, years) => {
@@ -46,11 +130,12 @@ const utils = {
     return principal * monthlyRate * Math.pow(1 + monthlyRate, months) / (Math.pow(1 + monthlyRate, months) - 1);
   },
   
-  calculateRequiredSIP: (futureValue, rate, years) => {
+  calculateRequiredSIP: (futureValue, rate, years, timing = appState.settings.sipTiming) => {
     const monthlyRate = rate / 12 / 100;
-    const months = years * 12;
-    if (monthlyRate === 0) return futureValue / months;
-    return futureValue * monthlyRate / ((Math.pow(1 + monthlyRate, months) - 1) * (1 + monthlyRate));
+    const months = Math.max(0, Math.floor(years * 12));
+    const factor = utils.sipFVFactor(monthlyRate, months, timing);
+    if (factor === 0) return 0;
+    return futureValue / factor;
   },
   
   normalRandom: () => {
@@ -59,28 +144,6 @@ const utils = {
     while(v === 0) v = Math.random();
     return Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v);
   }
-};
-
-const chartColors = {
-  primary: 'rgba(34, 197, 94, 1)',
-  primaryTransparent: 'rgba(34, 197, 94, 0.1)',
-  accent: 'rgba(249, 115, 22, 1)',
-  gray: 'rgba(107, 114, 128, 1)',
-  pie: [
-    'rgba(34, 197, 94, 1)',
-    'rgba(59, 130, 246, 1)',
-    'rgba(249, 115, 22, 1)',
-    'rgba(107, 114, 128, 1)',
-    'rgba(239, 68, 68, 1)',
-    'rgba(147, 51, 234, 1)',
-    'rgba(236, 72, 153, 1)',
-    'rgba(6, 182, 212, 1)'
-  ],
-  assetVsLiability: [
-    'rgba(34, 197, 94, 1)',
-    'rgba(239, 68, 68, 1)',
-    'rgba(107, 114, 128, 1)'
-  ]
 };
 
 // Navigation
@@ -185,7 +248,7 @@ const dashboard = {
         labels: labels,
         datasets: [{
           data: data,
-          backgroundColor: chartColors.pie
+          backgroundColor: chartColors.primary
         }]
       },
       options: {
@@ -228,7 +291,7 @@ const dashboard = {
         datasets: [{
           label: 'Progress %',
           data: progress,
-          backgroundColor: chartColors.primary
+          backgroundColor: chartColors.single
         }]
       },
       options: {
@@ -494,7 +557,7 @@ const networth = {
           labels: Object.keys(assetsByCategory),
           datasets: [{
             data: Object.values(assetsByCategory),
-            backgroundColor: chartColors.pie
+              backgroundColor: chartColors.primary
           }]
         },
         options: {
@@ -525,7 +588,7 @@ const networth = {
         datasets: [{
           label: 'Amount (₹)',
           data: [assets, liabilities, assets - liabilities],
-          backgroundColor: chartColors.assetVsLiability
+            backgroundColor: [chartColors.primary[0], chartColors.primary[2], chartColors.primary[6]]
         }]
       },
       options: {
@@ -781,7 +844,7 @@ const portfolio = {
         labels: Object.keys(assetsByCategory),
         datasets: [{
           data: Object.values(assetsByCategory),
-          backgroundColor: chartColors.pie
+            backgroundColor: chartColors.primary
         }]
       },
       options: {
@@ -890,11 +953,25 @@ const planner = {
     const labels = [];
     const data = [];
     let corpus = currentSavings;
+    const months = years * 12;
+    const mr = returnRate / 12 / 100;
     
-    for (let i = 0; i <= years; i++) {
-      labels.push('Year ' + i);
-      data.push(corpus);
-      corpus = corpus * (1 + returnRate / 100) + (monthlySavings * 12);
+    // Year 0 starting point
+    labels.push('Year 0');
+    data.push(corpus);
+    
+    for (let m = 1; m <= months; m++) {
+      if (appState.settings.sipTiming === 'due') {
+        // Deposit at start, then grow
+        corpus = (corpus + monthlySavings) * (1 + mr);
+      } else {
+        // Grow then deposit at end
+        corpus = corpus * (1 + mr) + monthlySavings;
+      }
+      if (m % 12 === 0) {
+        labels.push('Year ' + (m / 12));
+        data.push(corpus);
+      }
     }
     
     appState.charts.projection = new Chart(canvas, {
@@ -904,8 +981,8 @@ const planner = {
         datasets: [{
           label: 'Projected Wealth (₹)',
           data: data,
-          borderColor: chartColors.primary,
-          backgroundColor: chartColors.primaryTransparent,
+            borderColor: chartColors.single,
+            backgroundColor: chartColors.transparent,
           fill: true,
           tension: 0.4
         }]
@@ -1043,8 +1120,9 @@ const requiredReturn = {
       const monthlyRate = rate / 12 / 100;
       const months = years * 12;
       
-      // Calculate corpus at current rate
-      const sipValue = pmt * (Math.pow(1 + monthlyRate, months) - 1) / monthlyRate * (1 + monthlyRate);
+      // Calculate corpus at current rate using configured timing
+      const factor = utils.sipFVFactor(monthlyRate, months, appState.settings.sipTiming);
+      const sipValue = pmt * factor;
       const pvValue = pv * Math.pow(1 + rate / 100, years);
       const totalValue = sipValue + pvValue;
       
@@ -1057,11 +1135,17 @@ const requiredReturn = {
       // Derivative approximation
       const delta = 0.01;
       const monthlyRate2 = (rate + delta) / 12 / 100;
-      const sipValue2 = pmt * (Math.pow(1 + monthlyRate2, months) - 1) / monthlyRate2 * (1 + monthlyRate2);
+      const factor2 = utils.sipFVFactor(monthlyRate2, months, appState.settings.sipTiming);
+      const sipValue2 = pmt * factor2;
       const pvValue2 = pv * Math.pow(1 + (rate + delta) / 100, years);
       const totalValue2 = sipValue2 + pvValue2;
       
       const derivative = (totalValue2 - totalValue) / delta;
+      if (Math.abs(derivative) < 1e-9) {
+        // Avoid division by near-zero; nudge rate slightly and continue
+        rate += delta;
+        continue;
+      }
       
       // Newton-Raphson update
       rate = rate - error / derivative;
@@ -1088,17 +1172,43 @@ const monteCarlo = {
     const simulations = parseInt(document.getElementById('mcSimulations').value);
     
     const results = [];
-    
-    for (let sim = 0; sim < simulations; sim++) {
-      let corpus = initial;
-      
-      for (let year = 0; year < years; year++) {
-        // Generate random return
-        const randomReturn = meanReturn + (utils.normalRandom() * volatility);
-        corpus = corpus * (1 + randomReturn / 100) + (monthly * 12);
+    const useMonthly = document.getElementById('mcMonthlySteps')?.checked ?? appState.settings.mcMonthlySteps;
+    const useLognormal = document.getElementById('mcLognormal')?.checked ?? appState.settings.mcLognormal;
+    const timing = appState.settings.sipTiming;
+
+    if (useMonthly) {
+      const muA = meanReturn / 100;
+      const sigmaA = volatility / 100;
+      const muM = useLognormal ? Math.log(1 + muA) / 12 : muA / 12; // drift
+      const sigmaM = sigmaA / Math.sqrt(12);
+      const months = years * 12;
+
+      for (let sim = 0; sim < simulations; sim++) {
+        let corpus = initial;
+        for (let m = 0; m < months; m++) {
+          const z = utils.normalRandom();
+          const factor = useLognormal
+            ? Math.exp(muM - 0.5 * sigmaM * sigmaM + sigmaM * z)
+            : (1 + muM + sigmaM * z);
+          if (timing === 'due') {
+            corpus = (corpus + monthly) * factor;
+          } else {
+            corpus = corpus * factor + monthly;
+          }
+        }
+        results.push(corpus);
       }
-      
-      results.push(corpus);
+    } else {
+      // Annual steps fallback
+      for (let sim = 0; sim < simulations; sim++) {
+        let corpus = initial;
+        for (let year = 0; year < years; year++) {
+          const z = utils.normalRandom();
+          const r = meanReturn / 100 + (volatility / 100) * z; // normal annual
+          corpus = corpus * (1 + r) + (monthly * 12);
+        }
+        results.push(corpus);
+      }
     }
     
     // Sort results
@@ -1152,7 +1262,7 @@ const monteCarlo = {
         datasets: [{
           label: 'Frequency',
           data: histogram,
-          backgroundColor: chartColors.primary
+            backgroundColor: chartColors.single
         }]
       },
       options: {
@@ -1199,8 +1309,19 @@ const retirement = {
     const futureMonthlyExpenses = retirementExpenses * Math.pow(1 + inflation / 100, yearsToRetirement);
     const annualExpenses = futureMonthlyExpenses * 12;
     
-    // Calculate corpus needed using 4% rule (adjusted for post-retirement return)
-    const corpusNeeded = (annualExpenses * yearsInRetirement) / (1 + postReturn / 100);
+    // Calculate corpus needed using PV of a growing annuity at retirement
+    // First year's withdrawal = annualExpenses (already inflated to retirement)
+    const r = postReturn / 100;
+    const g = inflation / 100;
+    let corpusNeeded;
+    if (yearsInRetirement <= 0) {
+      corpusNeeded = 0;
+    } else if (Math.abs(r - g) < 1e-9) {
+      // Limit case when r ≈ g
+      corpusNeeded = (annualExpenses * yearsInRetirement) / (1 + r);
+    } else {
+      corpusNeeded = annualExpenses * (1 - Math.pow((1 + g) / (1 + r), yearsInRetirement)) / (r - g);
+    }
     
     // Calculate projected corpus
     const sipCorpus = utils.calculateSIP(monthlyContribution, preReturn, yearsToRetirement);
@@ -1252,8 +1373,8 @@ const retirement = {
         datasets: [{
           label: 'Retirement Corpus (₹)',
           data: data,
-          borderColor: chartColors.primary,
-          backgroundColor: chartColors.primaryTransparent,
+            borderColor: chartColors.single,
+            backgroundColor: chartColors.transparent,
           fill: true,
           tension: 0.4
         }]
@@ -1313,7 +1434,7 @@ const calculators = {
         labels: ['Principal', 'Interest'],
         datasets: [{
           data: [principal, interest],
-          backgroundColor: [chartColors.primary, chartColors.accent]
+            backgroundColor: [chartColors.primary[0], chartColors.primary[2]]
         }]
       },
       options: {
@@ -1357,7 +1478,7 @@ const calculators = {
         labels: ['Invested Amount', 'Returns'],
         datasets: [{
           data: [invested, returns],
-          backgroundColor: [chartColors.primary, chartColors.gray]
+            backgroundColor: [chartColors.primary[0], chartColors.primary[2]]
         }]
       },
       options: {
@@ -1534,6 +1655,9 @@ const sampleData = {
 
 // Initialize App
 document.addEventListener('DOMContentLoaded', () => {
+  // Initialize Chart.js defaults using current CSS theme variables
+  initChartDefaults();
+
   navigation.init();
   networth.init();
   goals.init();
@@ -1546,6 +1670,33 @@ document.addEventListener('DOMContentLoaded', () => {
   reports.init();
   
   dashboard.refresh();
+  
+  // Settings wiring
+  const sipSel = document.getElementById('sipTimingSelect');
+  if (sipSel) {
+    sipSel.value = appState.settings.sipTiming;
+    sipSel.addEventListener('change', () => {
+      appState.settings.sipTiming = sipSel.value;
+      // Refresh views that depend on SIP timing
+      goals.renderGoals();
+      // Recalculate projection if results visible
+      const projVisible = document.getElementById('projectionResults')?.style.display !== 'none';
+      if (projVisible) {
+        planner.calculateProjections();
+      }
+      // Recalculate SIP calc if visible
+      const sipVisible = document.getElementById('sipResults')?.style.display !== 'none';
+      if (sipVisible) {
+        calculators.calculateSIP();
+      }
+    });
+  }
+  const mcMonthlyEl = document.getElementById('mcMonthlySteps');
+  const mcLognormalEl = document.getElementById('mcLognormal');
+  if (mcMonthlyEl) mcMonthlyEl.checked = appState.settings.mcMonthlySteps;
+  if (mcLognormalEl) mcLognormalEl.checked = appState.settings.mcLognormal;
+  mcMonthlyEl?.addEventListener('change', () => appState.settings.mcMonthlySteps = mcMonthlyEl.checked);
+  mcLognormalEl?.addEventListener('change', () => appState.settings.mcLognormal = mcLognormalEl.checked);
   
   document.getElementById('loadSampleData').addEventListener('click', () => sampleData.load());
   document.getElementById('resetData').addEventListener('click', () => {
@@ -1561,6 +1712,39 @@ document.addEventListener('DOMContentLoaded', () => {
       alert('All data has been reset.');
     }
   });
+
+  // Lightweight self-tests (console only)
+  try {
+    const approx = (a, b, tol) => Math.abs(a - b) <= tol;
+    // EMI: 1,000,000 @ 10% for 20 years => ~9650
+    const emiTest = utils.calculateEMI(1000000, 10, 20);
+    console.assert(approx(emiTest, 9650, 50), 'EMI test failed:', emiTest);
+
+    // FV: 100,000 @ 12% for 10 years => ~310,585
+    const fvTest = utils.calculateFutureValue(100000, 12, 10);
+    console.assert(approx(fvTest, 310585, 1500), 'FV test failed:', fvTest);
+
+    // SIP due: 10,000/mo @ 12% for 10 years => ~2,323,000
+    appState.settings.sipTiming = 'due';
+    const sipDue = utils.calculateSIP(10000, 12, 10);
+    console.assert(approx(sipDue, 2323000, 20000), 'SIP due test failed:', sipDue);
+
+    // SIP ordinary: 10,000/mo @ 12% for 10 years => ~2,300,000
+    appState.settings.sipTiming = 'ordinary';
+    const sipOrd = utils.calculateSIP(10000, 12, 10);
+    console.assert(approx(sipOrd, 2300000, 20000), 'SIP ordinary test failed:', sipOrd);
+
+    // Required SIP inversion consistency
+    const fvTarget = utils.calculateSIP(5000, 10, 15); // build target
+    const req = utils.calculateRequiredSIP(fvTarget, 10, 15);
+    console.assert(approx(req, 5000, 10), 'Required SIP inversion failed:', req);
+
+    // Restore default timing
+    appState.settings.sipTiming = sipSel ? sipSel.value : 'due';
+    console.log('Self-tests completed');
+  } catch (e) {
+    console.warn('Self-tests encountered an error:', e);
+  }
 });
 
 // Make functions globally accessible for onclick handlers
