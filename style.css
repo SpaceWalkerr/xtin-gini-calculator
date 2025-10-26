@@ -892,6 +892,10 @@ body {
   margin-bottom: var(--space-4);
 }
 
+.app-title span {
+  color: var(--color-text);
+}
+
 .app-subtitle {
   font-size: var(--font-size-sm);
   color: var(--color-text-secondary);
