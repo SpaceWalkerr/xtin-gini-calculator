@@ -61,6 +61,28 @@ const utils = {
   }
 };
 
+const chartColors = {
+  primary: 'rgba(34, 197, 94, 1)',
+  primaryTransparent: 'rgba(34, 197, 94, 0.1)',
+  accent: 'rgba(249, 115, 22, 1)',
+  gray: 'rgba(107, 114, 128, 1)',
+  pie: [
+    'rgba(34, 197, 94, 1)',
+    'rgba(59, 130, 246, 1)',
+    'rgba(249, 115, 22, 1)',
+    'rgba(107, 114, 128, 1)',
+    'rgba(239, 68, 68, 1)',
+    'rgba(147, 51, 234, 1)',
+    'rgba(236, 72, 153, 1)',
+    'rgba(6, 182, 212, 1)'
+  ],
+  assetVsLiability: [
+    'rgba(34, 197, 94, 1)',
+    'rgba(239, 68, 68, 1)',
+    'rgba(107, 114, 128, 1)'
+  ]
+};
+
 // Navigation
 const navigation = {
   init: () => {
@@ -163,7 +185,7 @@ const dashboard = {
         labels: labels,
         datasets: [{
           data: data,
-          backgroundColor: ['#1FB8CD', '#FFC185', '#B4413C', '#ECEBD5', '#5D878F', '#DB4545', '#D2BA4C', '#964325']
+          backgroundColor: chartColors.pie
         }]
       },
       options: {
@@ -206,7 +228,7 @@ const dashboard = {
         datasets: [{
           label: 'Progress %',
           data: progress,
-          backgroundColor: '#1FB8CD'
+          backgroundColor: chartColors.primary
         }]
       },
       options: {
@@ -472,7 +494,7 @@ const networth = {
           labels: Object.keys(assetsByCategory),
           datasets: [{
             data: Object.values(assetsByCategory),
-            backgroundColor: ['#1FB8CD', '#FFC185', '#B4413C', '#ECEBD5', '#5D878F', '#DB4545', '#D2BA4C', '#964325']
+            backgroundColor: chartColors.pie
           }]
         },
         options: {
@@ -503,7 +525,7 @@ const networth = {
         datasets: [{
           label: 'Amount (₹)',
           data: [assets, liabilities, assets - liabilities],
-          backgroundColor: ['#1FB8CD', '#B4413C', '#5D878F']
+          backgroundColor: chartColors.assetVsLiability
         }]
       },
       options: {
@@ -759,7 +781,7 @@ const portfolio = {
         labels: Object.keys(assetsByCategory),
         datasets: [{
           data: Object.values(assetsByCategory),
-          backgroundColor: ['#1FB8CD', '#FFC185', '#B4413C', '#ECEBD5', '#5D878F', '#DB4545', '#D2BA4C', '#964325']
+          backgroundColor: chartColors.pie
         }]
       },
       options: {
@@ -882,8 +904,8 @@ const planner = {
         datasets: [{
           label: 'Projected Wealth (₹)',
           data: data,
-          borderColor: '#1FB8CD',
-          backgroundColor: 'rgba(31, 184, 205, 0.1)',
+          borderColor: chartColors.primary,
+          backgroundColor: chartColors.primaryTransparent,
           fill: true,
           tension: 0.4
         }]
@@ -1130,7 +1152,7 @@ const monteCarlo = {
         datasets: [{
           label: 'Frequency',
           data: histogram,
-          backgroundColor: '#1FB8CD'
+          backgroundColor: chartColors.primary
         }]
       },
       options: {
@@ -1230,8 +1252,8 @@ const retirement = {
         datasets: [{
           label: 'Retirement Corpus (₹)',
           data: data,
-          borderColor: '#1FB8CD',
-          backgroundColor: 'rgba(31, 184, 205, 0.1)',
+          borderColor: chartColors.primary,
+          backgroundColor: chartColors.primaryTransparent,
           fill: true,
           tension: 0.4
         }]
@@ -1291,7 +1313,7 @@ const calculators = {
         labels: ['Principal', 'Interest'],
         datasets: [{
           data: [principal, interest],
-          backgroundColor: ['#1FB8CD', '#FFC185']
+          backgroundColor: [chartColors.primary, chartColors.accent]
         }]
       },
       options: {
@@ -1335,7 +1357,7 @@ const calculators = {
         labels: ['Invested Amount', 'Returns'],
         datasets: [{
           data: [invested, returns],
-          backgroundColor: ['#1FB8CD', '#5D878F']
+          backgroundColor: [chartColors.primary, chartColors.gray]
         }]
       },
       options: {
