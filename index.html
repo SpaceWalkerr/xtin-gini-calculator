@@ -1,0 +1,944 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Xtin Gini - Advanced Financial Planning Calculator</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h1 class="app-title">Xtin Gini</h1>
+                <p class="app-subtitle">Financial Planning</p>
+            </div>
+            <nav class="sidebar-nav">
+                <button class="nav-item active" data-tab="dashboard">
+                    <span class="nav-icon">📊</span>
+                    <span class="nav-text">Dashboard</span>
+                </button>
+                <button class="nav-item" data-tab="networth">
+                    <span class="nav-icon">💰</span>
+                    <span class="nav-text">Net Worth</span>
+                </button>
+                <button class="nav-item" data-tab="goals">
+                    <span class="nav-icon">🎯</span>
+                    <span class="nav-text">Financial Goals</span>
+                </button>
+                <button class="nav-item" data-tab="portfolio">
+                    <span class="nav-icon">📈</span>
+                    <span class="nav-text">Portfolio Analyzer</span>
+                </button>
+                <button class="nav-item" data-tab="planner">
+                    <span class="nav-icon">🔮</span>
+                    <span class="nav-text">Goal Planner</span>
+                </button>
+                <button class="nav-item" data-tab="required-return">
+                    <span class="nav-icon">🎲</span>
+                    <span class="nav-text">Required Return</span>
+                </button>
+                <button class="nav-item" data-tab="monte-carlo">
+                    <span class="nav-icon">🎰</span>
+                    <span class="nav-text">Monte Carlo</span>
+                </button>
+                <button class="nav-item" data-tab="retirement">
+                    <span class="nav-icon">🏖️</span>
+                    <span class="nav-text">Retirement</span>
+                </button>
+                <button class="nav-item" data-tab="calculators">
+                    <span class="nav-icon">🧮</span>
+                    <span class="nav-text">Calculators</span>
+                </button>
+                <button class="nav-item" data-tab="reports">
+                    <span class="nav-icon">📄</span>
+                    <span class="nav-text">Reports</span>
+                </button>
+            </nav>
+            <div class="sidebar-footer">
+                <button class="btn btn--secondary btn--sm" id="loadSampleData">Load Sample Data</button>
+                <button class="btn btn--outline btn--sm" id="resetData">Reset All</button>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <!-- Dashboard Tab -->
+            <div class="tab-content active" id="dashboard-tab">
+                <div class="content-header">
+                    <h2>Dashboard</h2>
+                    <p class="content-subtitle">Your financial overview at a glance</p>
+                </div>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background: var(--color-bg-1);">💰</div>
+                        <div class="stat-content">
+                            <div class="stat-label">Net Worth</div>
+                            <div class="stat-value" id="dashNetWorth">₹0</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background: var(--color-bg-2);">🎯</div>
+                        <div class="stat-content">
+                            <div class="stat-label">Active Goals</div>
+                            <div class="stat-value" id="dashGoalsCount">0</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background: var(--color-bg-3);">📊</div>
+                        <div class="stat-content">
+                            <div class="stat-label">Financial Health</div>
+                            <div class="stat-value" id="dashHealthScore">0%</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background: var(--color-bg-4);">💸</div>
+                        <div class="stat-content">
+                            <div class="stat-label">Total Liabilities</div>
+                            <div class="stat-value" id="dashLiabilities">₹0</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="dashboard-charts">
+                    <div class="chart-card">
+                        <h3>Asset Allocation</h3>
+                        <div class="chart-container">
+                            <canvas id="dashAssetChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="chart-card">
+                        <h3>Goals Progress</h3>
+                        <div class="chart-container">
+                            <canvas id="dashGoalsChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Net Worth Tab -->
+            <div class="tab-content" id="networth-tab">
+                <div class="content-header">
+                    <h2>Net Worth Calculator</h2>
+                    <p class="content-subtitle">Track your assets and liabilities</p>
+                </div>
+                
+                <!-- Assets Section -->
+                <div class="section-card">
+                    <div class="section-header">
+                        <h3>Assets</h3>
+                        <button class="btn btn--primary btn--sm" id="addAssetBtn">+ Add Asset</button>
+                    </div>
+                    <div id="assetFormContainer" class="form-container" style="display: none;">
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label class="form-label">Asset Name</label>
+                                <input type="text" class="form-control" id="assetName" placeholder="e.g., Primary Residence">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Category</label>
+                                <select class="form-control" id="assetCategory">
+                                    <option value="Real Estate">Real Estate</option>
+                                    <option value="Stocks">Stocks</option>
+                                    <option value="Mutual Funds">Mutual Funds</option>
+                                    <option value="Fixed Deposits">Fixed Deposits</option>
+                                    <option value="Gold">Gold</option>
+                                    <option value="Cash">Cash</option>
+                                    <option value="Insurance">Insurance</option>
+                                    <option value="Others">Others</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Current Value (₹)</label>
+                                <input type="number" class="form-control" id="assetValue" placeholder="0">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Expected Annual Return (%)</label>
+                                <input type="number" class="form-control" id="assetReturn" placeholder="8" step="0.1">
+                            </div>
+                        </div>
+                        <div class="form-actions">
+                            <button class="btn btn--primary" id="saveAssetBtn">Save Asset</button>
+                            <button class="btn btn--secondary" id="cancelAssetBtn">Cancel</button>
+                        </div>
+                    </div>
+                    <div class="data-table-container">
+                        <table class="data-table" id="assetsTable">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Category</th>
+                                    <th>Value (₹)</th>
+                                    <th>Return (%)</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="assetsTableBody">
+                                <tr class="empty-state">
+                                    <td colspan="5">No assets added yet. Click "Add Asset" to get started.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="total-display">
+                        <span>Total Assets:</span>
+                        <strong id="totalAssets">₹0</strong>
+                    </div>
+                </div>
+
+                <!-- Liabilities Section -->
+                <div class="section-card">
+                    <div class="section-header">
+                        <h3>Liabilities</h3>
+                        <button class="btn btn--primary btn--sm" id="addLiabilityBtn">+ Add Liability</button>
+                    </div>
+                    <div id="liabilityFormContainer" class="form-container" style="display: none;">
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label class="form-label">Liability Name</label>
+                                <input type="text" class="form-control" id="liabilityName" placeholder="e.g., Home Loan">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Type</label>
+                                <select class="form-control" id="liabilityType">
+                                    <option value="Home Loan">Home Loan</option>
+                                    <option value="Car Loan">Car Loan</option>
+                                    <option value="Personal Loan">Personal Loan</option>
+                                    <option value="Credit Card">Credit Card</option>
+                                    <option value="Others">Others</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Outstanding Amount (₹)</label>
+                                <input type="number" class="form-control" id="liabilityAmount" placeholder="0">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Interest Rate (%)</label>
+                                <input type="number" class="form-control" id="liabilityRate" placeholder="8.5" step="0.1">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Monthly EMI (₹)</label>
+                                <input type="number" class="form-control" id="liabilityEMI" placeholder="0">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Tenure Remaining (years)</label>
+                                <input type="number" class="form-control" id="liabilityTenure" placeholder="10">
+                            </div>
+                        </div>
+                        <div class="form-actions">
+                            <button class="btn btn--primary" id="saveLiabilityBtn">Save Liability</button>
+                            <button class="btn btn--secondary" id="cancelLiabilityBtn">Cancel</button>
+                        </div>
+                    </div>
+                    <div class="data-table-container">
+                        <table class="data-table" id="liabilitiesTable">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Type</th>
+                                    <th>Amount (₹)</th>
+                                    <th>Rate (%)</th>
+                                    <th>EMI (₹)</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="liabilitiesTableBody">
+                                <tr class="empty-state">
+                                    <td colspan="6">No liabilities added yet.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="total-display">
+                        <span>Total Liabilities:</span>
+                        <strong id="totalLiabilities">₹0</strong>
+                    </div>
+                </div>
+
+                <!-- Net Worth Summary -->
+                <div class="section-card summary-card">
+                    <h3>Net Worth Summary</h3>
+                    <div class="summary-grid">
+                        <div class="summary-item">
+                            <span>Total Assets</span>
+                            <strong id="summaryAssets">₹0</strong>
+                        </div>
+                        <div class="summary-item minus">
+                            <span>Total Liabilities</span>
+                            <strong id="summaryLiabilities">₹0</strong>
+                        </div>
+                        <div class="summary-item networth">
+                            <span>Net Worth</span>
+                            <strong id="summaryNetWorth">₹0</strong>
+                        </div>
+                    </div>
+                    <div class="charts-row">
+                        <div class="chart-card">
+                            <h4>Asset Allocation</h4>
+                            <div class="chart-container">
+                                <canvas id="assetAllocationChart"></canvas>
+                            </div>
+                        </div>
+                        <div class="chart-card">
+                            <h4>Assets vs Liabilities</h4>
+                            <div class="chart-container">
+                                <canvas id="assetVsLiabilityChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Goals Tab -->
+            <div class="tab-content" id="goals-tab">
+                <div class="content-header">
+                    <h2>Financial Goals</h2>
+                    <p class="content-subtitle">Plan and track your financial objectives</p>
+                </div>
+                
+                <div class="section-card">
+                    <div class="section-header">
+                        <h3>Your Goals</h3>
+                        <button class="btn btn--primary btn--sm" id="addGoalBtn">+ Add Goal</button>
+                    </div>
+                    <div id="goalFormContainer" class="form-container" style="display: none;">
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label class="form-label">Goal Name</label>
+                                <input type="text" class="form-control" id="goalName" placeholder="e.g., Child Education">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Category</label>
+                                <select class="form-control" id="goalCategory">
+                                    <option value="Education">Education</option>
+                                    <option value="Wedding">Wedding</option>
+                                    <option value="Home Purchase">Home Purchase</option>
+                                    <option value="Car">Car</option>
+                                    <option value="Retirement">Retirement</option>
+                                    <option value="Vacation">Vacation</option>
+                                    <option value="Emergency Fund">Emergency Fund</option>
+                                    <option value="Others">Others</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Current Cost (₹)</label>
+                                <input type="number" class="form-control" id="goalCurrentCost" placeholder="1000000">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Target Year</label>
+                                <input type="number" class="form-control" id="goalTargetYear" placeholder="2030" min="2025" max="2100">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Priority</label>
+                                <select class="form-control" id="goalPriority">
+                                    <option value="High">High</option>
+                                    <option value="Medium">Medium</option>
+                                    <option value="Low">Low</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Inflation Rate (%)</label>
+                                <input type="number" class="form-control" id="goalInflation" value="7" step="0.1">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Amount Already Saved (₹)</label>
+                                <input type="number" class="form-control" id="goalSaved" placeholder="0">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Expected Return (%)</label>
+                                <input type="number" class="form-control" id="goalReturn" value="12" step="0.1">
+                            </div>
+                        </div>
+                        <div class="form-actions">
+                            <button class="btn btn--primary" id="saveGoalBtn">Save Goal</button>
+                            <button class="btn btn--secondary" id="cancelGoalBtn">Cancel</button>
+                        </div>
+                    </div>
+                    <div id="goalsCardsContainer" class="goals-grid">
+                        <div class="empty-state-card">
+                            <p>No goals added yet. Click "Add Goal" to start planning.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Portfolio Analyzer Tab -->
+            <div class="tab-content" id="portfolio-tab">
+                <div class="content-header">
+                    <h2>Portfolio Analyzer</h2>
+                    <p class="content-subtitle">Analyze your investment portfolio</p>
+                </div>
+                
+                <div class="section-card">
+                    <h3>Current Portfolio Analysis</h3>
+                    <div class="portfolio-stats">
+                        <div class="stat-box">
+                            <span class="stat-label">Weighted Avg Return</span>
+                            <span class="stat-value" id="portfolioWeightedReturn">0%</span>
+                        </div>
+                        <div class="stat-box">
+                            <span class="stat-label">Total Portfolio Value</span>
+                            <span class="stat-value" id="portfolioTotalValue">₹0</span>
+                        </div>
+                        <div class="stat-box">
+                            <span class="stat-label">Asset Classes</span>
+                            <span class="stat-value" id="portfolioAssetClasses">0</span>
+                        </div>
+                    </div>
+                    <div class="chart-card">
+                        <h4>Portfolio Distribution</h4>
+                        <div class="chart-container">
+                            <canvas id="portfolioDistChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="data-table-container">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Asset Class</th>
+                                    <th>Current Value</th>
+                                    <th>Allocation %</th>
+                                    <th>Expected Return %</th>
+                                    <th>Contribution to Return</th>
+                                </tr>
+                            </thead>
+                            <tbody id="portfolioTableBody">
+                                <tr class="empty-state">
+                                    <td colspan="5">No portfolio data available</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="section-card">
+                    <h3>Risk Assessment</h3>
+                    <div class="risk-questionnaire">
+                        <div class="form-group">
+                            <label class="form-label">Investment Horizon (Years)</label>
+                            <input type="number" class="form-control" id="riskHorizon" value="10" min="1">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Risk Tolerance</label>
+                            <select class="form-control" id="riskTolerance">
+                                <option value="Conservative">Conservative (Low Risk)</option>
+                                <option value="Moderate" selected>Moderate (Medium Risk)</option>
+                                <option value="Aggressive">Aggressive (High Risk)</option>
+                            </select>
+                        </div>
+                        <button class="btn btn--primary" id="calculateRiskBtn">Calculate Recommendations</button>
+                    </div>
+                    <div id="riskRecommendations" class="risk-results" style="display: none;">
+                        <h4>Recommended Allocation</h4>
+                        <div class="allocation-comparison">
+                            <div class="allocation-item">
+                                <span>Equity:</span>
+                                <strong id="recEquity">0%</strong>
+                            </div>
+                            <div class="allocation-item">
+                                <span>Debt:</span>
+                                <strong id="recDebt">0%</strong>
+                            </div>
+                            <div class="allocation-item">
+                                <span>Others:</span>
+                                <strong id="recOthers">0%</strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Goal Planner Tab -->
+            <div class="tab-content" id="planner-tab">
+                <div class="content-header">
+                    <h2>Goal Planner &amp; Projections</h2>
+                    <p class="content-subtitle">Project your wealth and test scenarios</p>
+                </div>
+                
+                <div class="section-card">
+                    <h3>Planning Inputs</h3>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label class="form-label">Current Age</label>
+                            <input type="number" class="form-control" id="plannerCurrentAge" value="35">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Retirement Age</label>
+                            <input type="number" class="form-control" id="plannerRetirementAge" value="60">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Current Monthly Income (₹)</label>
+                            <input type="number" class="form-control" id="plannerIncome" value="200000">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Current Monthly Expenses (₹)</label>
+                            <input type="number" class="form-control" id="plannerExpenses" value="120000">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Current Total Savings (₹)</label>
+                            <input type="number" class="form-control" id="plannerSavings" value="1000000">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Monthly Savings Amount (₹)</label>
+                            <input type="number" class="form-control" id="plannerMonthlySavings" value="50000">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Expected Annual Return (%)</label>
+                            <input type="number" class="form-control" id="plannerReturn" value="12" step="0.1">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Inflation Rate (%)</label>
+                            <input type="number" class="form-control" id="plannerInflation" value="7" step="0.1">
+                        </div>
+                    </div>
+                    <button class="btn btn--primary" id="calculateProjectionBtn">Calculate Projections</button>
+                </div>
+
+                <div class="section-card" id="projectionResults" style="display: none;">
+                    <h3>Wealth Projection</h3>
+                    <div class="projection-summary">
+                        <div class="summary-stat">
+                            <span>Projected Corpus at Retirement</span>
+                            <strong id="projectedCorpus">₹0</strong>
+                        </div>
+                        <div class="summary-stat">
+                            <span>Total Amount Invested</span>
+                            <strong id="totalInvested">₹0</strong>
+                        </div>
+                        <div class="summary-stat">
+                            <span>Total Returns Generated</span>
+                            <strong id="totalReturns">₹0</strong>
+                        </div>
+                    </div>
+                    <div class="chart-card">
+                        <h4>Wealth Growth Over Time</h4>
+                        <div class="chart-container">
+                            <canvas id="projectionChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section-card">
+                    <h3>What-If Scenarios</h3>
+                    <p class="scenario-description">Adjust the sliders to see how changes impact your projections</p>
+                    <div class="scenario-controls">
+                        <div class="slider-group">
+                            <label class="form-label">Monthly Savings Adjustment: <span id="savingsAdjLabel">0%</span></label>
+                            <input type="range" class="slider" id="savingsAdjSlider" min="-50" max="50" value="0" step="5">
+                            <div class="slider-marks">
+                                <span>-50%</span>
+                                <span>0%</span>
+                                <span>+50%</span>
+                            </div>
+                        </div>
+                        <div class="slider-group">
+                            <label class="form-label">Return Rate Adjustment: <span id="returnAdjLabel">0%</span></label>
+                            <input type="range" class="slider" id="returnAdjSlider" min="-5" max="5" value="0" step="0.5">
+                            <div class="slider-marks">
+                                <span>-5%</span>
+                                <span>0%</span>
+                                <span>+5%</span>
+                            </div>
+                        </div>
+                        <div class="slider-group">
+                            <label class="form-label">Retirement Age Adjustment: <span id="retirementAdjLabel">0 years</span></label>
+                            <input type="range" class="slider" id="retirementAdjSlider" min="-10" max="10" value="0" step="1">
+                            <div class="slider-marks">
+                                <span>-10 years</span>
+                                <span>0</span>
+                                <span>+10 years</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="scenario-result">
+                        <h4>Adjusted Projection</h4>
+                        <div class="result-value" id="scenarioResult">₹0</div>
+                        <div class="result-change" id="scenarioChange">No change</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Required Return Tab -->
+            <div class="tab-content" id="required-return-tab">
+                <div class="content-header">
+                    <h2>Required Return Calculator</h2>
+                    <p class="content-subtitle">Determine the return needed to achieve all your goals</p>
+                </div>
+                
+                <div class="section-card">
+                    <h3>Current Situation</h3>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label class="form-label">Current Total Savings (₹)</label>
+                            <input type="number" class="form-control" id="rrCurrentSavings" value="1000000">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Monthly Contribution (₹)</label>
+                            <input type="number" class="form-control" id="rrMonthlyContribution" value="50000">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Expected Annual Return (%)</label>
+                            <input type="number" class="form-control" id="rrExpectedReturn" value="12" step="0.1">
+                        </div>
+                    </div>
+                    <button class="btn btn--primary" id="calculateRequiredReturnBtn">Calculate Required Return</button>
+                </div>
+
+                <div class="section-card" id="requiredReturnResults" style="display: none;">
+                    <h3>Analysis Results</h3>
+                    <div class="rr-results">
+                        <div class="rr-stat">
+                            <span>Total Future Corpus Needed</span>
+                            <strong id="rrTotalNeeded">₹0</strong>
+                        </div>
+                        <div class="rr-stat">
+                            <span>Projected Corpus (at expected return)</span>
+                            <strong id="rrProjected">₹0</strong>
+                        </div>
+                        <div class="rr-stat highlight">
+                            <span>Required Annual Return</span>
+                            <strong id="rrRequired">0%</strong>
+                        </div>
+                        <div class="rr-stat">
+                            <span>Gap</span>
+                            <strong id="rrGap">0%</strong>
+                        </div>
+                    </div>
+                    <div class="feasibility-indicator" id="feasibilityIndicator">
+                        <div class="feasibility-bar"></div>
+                        <div class="feasibility-label"></div>
+                    </div>
+                    <div class="recommendations" id="rrRecommendations">
+                        <h4>Recommendations</h4>
+                        <ul id="rrRecommendationsList"></ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Monte Carlo Tab -->
+            <div class="tab-content" id="monte-carlo-tab">
+                <div class="content-header">
+                    <h2>Monte Carlo Simulation</h2>
+                    <p class="content-subtitle">Analyze probability of achieving your goals</p>
+                </div>
+                
+                <div class="section-card">
+                    <h3>Simulation Parameters</h3>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label class="form-label">Initial Amount (₹)</label>
+                            <input type="number" class="form-control" id="mcInitial" value="1000000">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Monthly Contribution (₹)</label>
+                            <input type="number" class="form-control" id="mcMonthly" value="50000">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Years to Goal</label>
+                            <input type="number" class="form-control" id="mcYears" value="20">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Expected Return (Mean) %</label>
+                            <input type="number" class="form-control" id="mcMeanReturn" value="12" step="0.1">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Return Volatility (Std Dev) %</label>
+                            <input type="number" class="form-control" id="mcVolatility" value="15" step="0.1">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Target Goal Amount (₹)</label>
+                            <input type="number" class="form-control" id="mcTarget" value="10000000">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Number of Simulations</label>
+                            <input type="number" class="form-control" id="mcSimulations" value="1000" min="100" max="10000">
+                        </div>
+                    </div>
+                    <button class="btn btn--primary" id="runMonteCarloBtn">Run Simulation</button>
+                </div>
+
+                <div class="section-card" id="monteCarloResults" style="display: none;">
+                    <h3>Simulation Results</h3>
+                    <div class="mc-summary">
+                        <div class="mc-stat success">
+                            <span>Probability of Success</span>
+                            <strong id="mcProbability">0%</strong>
+                        </div>
+                        <div class="mc-stat">
+                            <span>Median Outcome</span>
+                            <strong id="mcMedian">₹0</strong>
+                        </div>
+                        <div class="mc-stat">
+                            <span>Best Case (90th %ile)</span>
+                            <strong id="mcBest">₹0</strong>
+                        </div>
+                        <div class="mc-stat">
+                            <span>Worst Case (10th %ile)</span>
+                            <strong id="mcWorst">₹0</strong>
+                        </div>
+                    </div>
+                    <div class="chart-card">
+                        <h4>Outcome Distribution</h4>
+                        <div class="chart-container">
+                            <canvas id="mcDistributionChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Retirement Tab -->
+            <div class="tab-content" id="retirement-tab">
+                <div class="content-header">
+                    <h2>Retirement Calculator</h2>
+                    <p class="content-subtitle">Plan for a comfortable retirement</p>
+                </div>
+                
+                <div class="section-card">
+                    <h3>Retirement Planning Inputs</h3>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label class="form-label">Current Age</label>
+                            <input type="number" class="form-control" id="retCurrentAge" value="35">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Retirement Age</label>
+                            <input type="number" class="form-control" id="retRetirementAge" value="60">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Life Expectancy</label>
+                            <input type="number" class="form-control" id="retLifeExpectancy" value="85">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Current Monthly Expenses (₹)</label>
+                            <input type="number" class="form-control" id="retCurrentExpenses" value="100000">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Retirement Expenses (% of current)</label>
+                            <input type="number" class="form-control" id="retExpensePercent" value="80">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Pre-Retirement Inflation (%)</label>
+                            <input type="number" class="form-control" id="retInflation" value="7" step="0.1">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Post-Retirement Return (%)</label>
+                            <input type="number" class="form-control" id="retPostReturn" value="8" step="0.1">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Existing Retirement Corpus (₹)</label>
+                            <input type="number" class="form-control" id="retExistingCorpus" value="1000000">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Monthly Contribution (₹)</label>
+                            <input type="number" class="form-control" id="retMonthlyContribution" value="50000">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Pre-Retirement Return (%)</label>
+                            <input type="number" class="form-control" id="retPreReturn" value="12" step="0.1">
+                        </div>
+                    </div>
+                    <button class="btn btn--primary" id="calculateRetirementBtn">Calculate Retirement Plan</button>
+                </div>
+
+                <div class="section-card" id="retirementResults" style="display: none;">
+                    <h3>Retirement Analysis</h3>
+                    <div class="ret-summary">
+                        <div class="ret-stat">
+                            <span>Corpus Needed at Retirement</span>
+                            <strong id="retCorpusNeeded">₹0</strong>
+                        </div>
+                        <div class="ret-stat">
+                            <span>Projected Corpus at Retirement</span>
+                            <strong id="retProjectedCorpus">₹0</strong>
+                        </div>
+                        <div class="ret-stat">
+                            <span>Surplus / Shortfall</span>
+                            <strong id="retSurplus">₹0</strong>
+                        </div>
+                        <div class="ret-stat">
+                            <span>Years Corpus Will Last</span>
+                            <strong id="retYearsLast">0 years</strong>
+                        </div>
+                    </div>
+                    <div class="chart-card">
+                        <h4>Corpus Depletion Curve</h4>
+                        <div class="chart-container">
+                            <canvas id="retirementChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Calculators Tab -->
+            <div class="tab-content" id="calculators-tab">
+                <div class="content-header">
+                    <h2>Financial Calculators</h2>
+                    <p class="content-subtitle">Quick calculation tools</p>
+                </div>
+
+                <!-- EMI Calculator -->
+                <div class="section-card">
+                    <h3>EMI Calculator</h3>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label class="form-label">Loan Amount (₹)</label>
+                            <input type="number" class="form-control" id="emiLoanAmount" value="1000000">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Interest Rate (% per annum)</label>
+                            <input type="number" class="form-control" id="emiRate" value="8.5" step="0.1">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Tenure (years)</label>
+                            <input type="number" class="form-control" id="emiTenure" value="15">
+                        </div>
+                    </div>
+                    <button class="btn btn--primary" id="calculateEMIBtn">Calculate EMI</button>
+                    <div id="emiResults" class="calc-results" style="display: none;">
+                        <div class="result-grid">
+                            <div class="result-item">
+                                <span>Monthly EMI</span>
+                                <strong id="emiMonthly">₹0</strong>
+                            </div>
+                            <div class="result-item">
+                                <span>Total Interest</span>
+                                <strong id="emiTotalInterest">₹0</strong>
+                            </div>
+                            <div class="result-item">
+                                <span>Total Amount</span>
+                                <strong id="emiTotalAmount">₹0</strong>
+                            </div>
+                        </div>
+                        <div class="chart-card">
+                            <h4>Principal vs Interest</h4>
+                            <div class="chart-container">
+                                <canvas id="emiChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SIP Calculator -->
+                <div class="section-card">
+                    <h3>SIP Calculator</h3>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label class="form-label">Monthly Investment (₹)</label>
+                            <input type="number" class="form-control" id="sipMonthly" value="10000">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Expected Return (% per annum)</label>
+                            <input type="number" class="form-control" id="sipReturn" value="12" step="0.1">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Investment Period (years)</label>
+                            <input type="number" class="form-control" id="sipPeriod" value="20">
+                        </div>
+                    </div>
+                    <button class="btn btn--primary" id="calculateSIPBtn">Calculate SIP</button>
+                    <div id="sipResults" class="calc-results" style="display: none;">
+                        <div class="result-grid">
+                            <div class="result-item">
+                                <span>Total Invested</span>
+                                <strong id="sipInvested">₹0</strong>
+                            </div>
+                            <div class="result-item">
+                                <span>Expected Returns</span>
+                                <strong id="sipReturns">₹0</strong>
+                            </div>
+                            <div class="result-item">
+                                <span>Maturity Value</span>
+                                <strong id="sipMaturity">₹0</strong>
+                            </div>
+                        </div>
+                        <div class="chart-card">
+                            <h4>Investment Growth</h4>
+                            <div class="chart-container">
+                                <canvas id="sipChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Inflation Impact Calculator -->
+                <div class="section-card">
+                    <h3>Inflation Impact Calculator</h3>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label class="form-label">Current Amount (₹)</label>
+                            <input type="number" class="form-control" id="inflationAmount" value="100000">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Years</label>
+                            <input type="number" class="form-control" id="inflationYears" value="10">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Inflation Rate (%)</label>
+                            <input type="number" class="form-control" id="inflationRate" value="7" step="0.1">
+                        </div>
+                    </div>
+                    <button class="btn btn--primary" id="calculateInflationBtn">Calculate Impact</button>
+                    <div id="inflationResults" class="calc-results" style="display: none;">
+                        <div class="result-grid">
+                            <div class="result-item">
+                                <span>Future Value Needed</span>
+                                <strong id="inflationFutureValue">₹0</strong>
+                            </div>
+                            <div class="result-item">
+                                <span>Purchasing Power Loss</span>
+                                <strong id="inflationLoss">₹0</strong>
+                            </div>
+                            <div class="result-item">
+                                <span>Purchasing Power Retained</span>
+                                <strong id="inflationRetained">0%</strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Reports Tab -->
+            <div class="tab-content" id="reports-tab">
+                <div class="content-header">
+                    <h2>Reports &amp; Export</h2>
+                    <p class="content-subtitle">Generate comprehensive financial reports</p>
+                </div>
+                
+                <div class="section-card">
+                    <h3>Generate Report</h3>
+                    <p>Create a comprehensive report of your financial situation</p>
+                    <div class="report-options">
+                        <label class="checkbox-label">
+                            <input type="checkbox" checked id="reportNetWorth"> Include Net Worth Statement
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" checked id="reportGoals"> Include Financial Goals
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" checked id="reportPortfolio"> Include Portfolio Analysis
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" checked id="reportProjections"> Include Projections
+                        </label>
+                    </div>
+                    <div class="report-actions">
+                        <button class="btn btn--primary" id="generateReportBtn">Generate Report</button>
+                        <button class="btn btn--secondary" id="exportJSONBtn">Export Data (JSON)</button>
+                        <button class="btn btn--secondary" id="importJSONBtn">Import Data (JSON)</button>
+                        <input type="file" id="importFileInput" accept=".json" style="display: none;">
+                    </div>
+                </div>
+
+                <div class="section-card" id="reportPreview" style="display: none;">
+                    <h3>Report Preview</h3>
+                    <div id="reportContent" class="report-content"></div>
+                    <button class="btn btn--primary" id="printReportBtn">Print Report</button>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
