@@ -27,6 +27,17 @@
                     </span>
                     <span class="nav-text">Dashboard</span>
                 </button>
+                <button class="nav-item" data-tab="family-settings">
+                    <span class="nav-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="9" cy="7" r="4"></circle>
+                            <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                            <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                        </svg>
+                    </span>
+                    <span class="nav-text">Family Settings</span>
+                </button>
                 <button class="nav-item" data-tab="networth">
                     <span class="nav-icon">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -102,6 +113,17 @@
                     </span>
                     <span class="nav-text">Calculators</span>
                 </button>
+                <button class="nav-item" data-tab="family-planning">
+                    <span class="nav-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="9" cy="7" r="4"></circle>
+                            <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                            <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                        </svg>
+                    </span>
+                    <span class="nav-text">Family Planning</span>
+                </button>
                 <button class="nav-item" data-tab="reports">
                     <span class="nav-icon">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -119,6 +141,7 @@
                 <button class="btn btn--secondary btn--sm" id="loadSampleData">Load Sample Data</button>
                 <button class="btn btn--outline btn--sm" id="resetData">Reset All</button>
             </div>
+            
         </aside>
 
         <!-- Main Content Area -->
@@ -207,6 +230,155 @@
                 </div>
             </div>
 
+            <!-- Family Settings Tab -->
+            <div class="tab-content" id="family-settings-tab">
+                <div class="content-header">
+                    <h2>Family Settings</h2>
+                    <p class="content-subtitle">Manage family members and household income</p>
+                </div>
+
+                <!-- Household Summary -->
+                <div class="section-card">
+                    <h3>Household Overview</h3>
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-icon" style="background: linear-gradient(135deg, var(--color-primary), var(--brand-green-hover));">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                                    <line x1="12" y1="1" x2="12" y2="23"></line>
+                                    <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+                                </svg>
+                            </div>
+                            <div class="stat-content">
+                                <div class="stat-label">Household Income</div>
+                                <div class="stat-value" id="fsHouseholdIncome">₹0</div>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon" style="background: linear-gradient(135deg, #4CAF50, #00843D);">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                                    <circle cx="9" cy="7" r="4"></circle>
+                                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                                    <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                                </svg>
+                            </div>
+                            <div class="stat-content">
+                                <div class="stat-label">Family Members</div>
+                                <div class="stat-value" id="fsTotalMembers">1</div>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon" style="background: linear-gradient(135deg, #00BFA5, #26A69A);">
+                                💼
+                            </div>
+                            <div class="stat-content">
+                                <div class="stat-label">Earners</div>
+                                <div class="stat-value" id="fsEarners">1</div>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon" style="background: linear-gradient(135deg, #ff9800, #f57c00);">
+                                👶
+                            </div>
+                            <div class="stat-content">
+                                <div class="stat-label">Dependents</div>
+                                <div class="stat-value" id="fsDependents">0</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Income Breakdown Chart -->
+                    <div style="margin-top: 24px;">
+                        <h4>Income Contribution</h4>
+                        <div class="chart-container" style="height: 300px;">
+                            <canvas id="householdIncomeChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Income Mode Selector -->
+                <div class="section-card">
+                    <h3>Income Configuration</h3>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Income Mode</label>
+                            <select id="incomeModeSelect" class="form-control">
+                                <option value="Single">Single Income</option>
+                                <option value="Dual">Dual Income</option>
+                                <option value="Family">Family Income (3+)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>View Mode</label>
+                            <select id="viewModeSelect" class="form-control">
+                                <option value="Household" selected>Household View</option>
+                                <option value="Individual">My View Only</option>
+                                <option value="Spouse">Spouse View</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Family Members List -->
+                <div class="section-card">
+                    <div class="section-header">
+                        <h3>Family Members</h3>
+                        <button class="btn btn--primary btn--sm" id="addFamilyMemberBtn">+ Add Member</button>
+                    </div>
+
+                    <!-- Add Member Form -->
+                    <div id="familyMemberFormContainer" class="form-container" style="display: none; margin-bottom: 20px;">
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label>Name</label>
+                                <input type="text" id="memberName" class="form-control" placeholder="e.g., John Doe">
+                            </div>
+                            <div class="form-group">
+                                <label>Relationship</label>
+                                <select id="memberRelationship" class="form-control">
+                                    <option value="Spouse">Spouse/Partner</option>
+                                    <option value="Child">Child</option>
+                                    <option value="Parent">Parent</option>
+                                    <option value="Sibling">Sibling</option>
+                                    <option value="Other">Other Dependent</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Age</label>
+                                <input type="number" id="memberAge" class="form-control" value="30" min="0" max="120">
+                            </div>
+                            <div class="form-group">
+                                <label>Monthly Income (₹)</label>
+                                <input type="number" id="memberIncome" class="form-control" value="0" step="1000">
+                            </div>
+                            <div class="form-group">
+                                <label>Retirement Age</label>
+                                <input type="number" id="memberRetirementAge" class="form-control" value="60" min="40" max="75">
+                            </div>
+                            <div class="form-group">
+                                <label style="display: flex; align-items: center; gap: 8px;">
+                                    <input type="checkbox" id="memberIsEarner">
+                                    <span>Is Earner?</span>
+                                </label>
+                            </div>
+                            <div class="form-group">
+                                <label style="display: flex; align-items: center; gap: 8px;">
+                                    <input type="checkbox" id="memberIsDependent">
+                                    <span>Is Dependent?</span>
+                                </label>
+                            </div>
+                        </div>
+                        <div class="form-actions">
+                            <button class="btn btn--primary" id="saveFamilyMemberBtn">Save Member</button>
+                            <button class="btn btn--outline" id="cancelFamilyMemberBtn">Cancel</button>
+                        </div>
+                    </div>
+
+                    <!-- Family Members Container -->
+                    <div id="familyMembersContainer"></div>
+                </div>
+            </div>
+
             <!-- Net Worth Tab -->
             <div class="tab-content" id="networth-tab">
                 <div class="content-header">
@@ -247,6 +419,23 @@
                                 <label class="form-label">Expected Annual Return (%)</label>
                                 <input type="number" class="form-control" id="assetReturn" placeholder="8" step="0.1">
                             </div>
+                            <div class="form-group">
+                                <label class="form-label">Ownership Type</label>
+                                <select class="form-control" id="assetOwnershipType">
+                                    <option value="Individual">Individual</option>
+                                    <option value="Joint">Joint</option>
+                                    <option value="Trust">Trust/For Dependent</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Owner</label>
+                                <select class="form-control" id="assetOwner"></select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Ownership Share (%)</label>
+                                <input type="number" class="form-control" id="assetJointShare" value="100" min="0" max="100">
+                                <small style="color: var(--color-text-secondary);">For joint ownership, enter share percentage</small>
+                            </div>
                         </div>
                         <div class="form-actions">
                             <button class="btn btn--primary" id="saveAssetBtn">Save Asset</button>
@@ -261,12 +450,13 @@
                                     <th>Category</th>
                                     <th>Value (₹)</th>
                                     <th>Return (%)</th>
+                                    <th>Ownership</th>
                                     <th>Actions</th>
                                 </tr>
                             </thead>
                             <tbody id="assetsTableBody">
                                 <tr class="empty-state">
-                                    <td colspan="5">No assets added yet. Click "Add Asset" to get started.</td>
+                                    <td colspan="6">No assets added yet. Click "Add Asset" to get started.</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -315,6 +505,22 @@
                                 <label class="form-label">Tenure Remaining (years)</label>
                                 <input type="number" class="form-control" id="liabilityTenure" placeholder="10">
                             </div>
+                            <div class="form-group">
+                                <label class="form-label">Ownership Type</label>
+                                <select class="form-control" id="liabilityOwnershipType">
+                                    <option value="Individual">Individual</option>
+                                    <option value="Joint">Joint</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Primary Borrower</label>
+                                <select class="form-control" id="liabilityOwner"></select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Responsibility Share (%)</label>
+                                <input type="number" class="form-control" id="liabilityJointShare" value="100" min="0" max="100">
+                                <small style="color: var(--color-text-secondary);">For joint liability, enter responsibility percentage</small>
+                            </div>
                         </div>
                         <div class="form-actions">
                             <button class="btn btn--primary" id="saveLiabilityBtn">Save Liability</button>
@@ -330,12 +536,13 @@
                                     <th>Amount (₹)</th>
                                     <th>Rate (%)</th>
                                     <th>EMI (₹)</th>
+                                    <th>Ownership</th>
                                     <th>Actions</th>
                                 </tr>
                             </thead>
                             <tbody id="liabilitiesTableBody">
                                 <tr class="empty-state">
-                                    <td colspan="6">No liabilities added yet.</td>
+                                    <td colspan="7">No liabilities added yet.</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -438,6 +645,25 @@
                             <div class="form-group">
                                 <label class="form-label">Expected Return (%)</label>
                                 <input type="number" class="form-control" id="goalReturn" value="12" step="0.1">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Assigned To</label>
+                                <select class="form-control" id="goalAssignedTo">
+                                    <option value="">Household</option>
+                                </select>
+                                <small style="color: var(--color-text-secondary);">Who is this goal for?</small>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Funded By</label>
+                                <select class="form-control" id="goalFundedBy">
+                                    <option value="">Household</option>
+                                </select>
+                                <small style="color: var(--color-text-secondary);">Who will contribute?</small>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Contribution Split (%)</label>
+                                <input type="number" class="form-control" id="goalFundingSplit" value="100" min="0" max="100">
+                                <small style="color: var(--color-text-secondary);">Percentage contributed by primary funder</small>
                             </div>
                         </div>
                         <div class="form-actions">
@@ -1000,47 +1226,768 @@
                 </div>
             </div>
 
+            <!-- Family Planning Tab -->
+            <div class="tab-content" id="family-planning-tab">
+                <div class="content-header">
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <div class="brand-badge" aria-hidden="true">
+                            <!-- Simple professional inline logo mark -->
+                            <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.5">
+                                <circle cx="12" cy="12" r="10" stroke="rgba(255,255,255,0.6)"/>
+                                <path d="M6 14c2.5-4 4.5-6 6-6s3.5 2 6 6" stroke="currentColor"/>
+                                <circle cx="12" cy="12" r="2.25" fill="currentColor"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <h2>Family Planning Mode</h2>
+                            <p class="content-subtitle">Comprehensive planning for life's major family milestones</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Access to Advanced Features -->
+                <div class="cta-banner cta--advanced">
+                    <div class="cta-content">
+                        <div>
+                            <h3 class="cta-title">Advanced Family Planning</h3>
+                            <p class="cta-subtitle">Access dual retirement, elder care, education timeline, tax optimization & more</p>
+                        </div>
+                        <button class="btn btn--secondary cta-action" onclick="navigation.switchTab('family-advanced')">Open Advanced Tools →</button>
+                    </div>
+                </div>
+
+                <!-- Family Profile -->
+                <div class="section-card">
+                    <h3><span class="section-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M17 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="9" cy="7" r="4"></circle>
+                            <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                            <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                        </svg>
+                    </span>Family Profile</h3>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label class="form-label">Marital Status</label>
+                            <select class="form-control" id="fpMaritalStatus">
+                                <option value="single">Single</option>
+                                <option value="married" selected>Married</option>
+                                <option value="divorced">Divorced</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Number of Children</label>
+                            <input type="number" class="form-control" id="fpNumChildren" value="0" min="0" max="10">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Planning to Have Children?</label>
+                            <select class="form-control" id="fpPlanChildren">
+                                <option value="yes">Yes</option>
+                                <option value="no" selected>No</option>
+                                <option value="maybe">Maybe</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Expected Number (if planning)</label>
+                            <input type="number" class="form-control" id="fpExpectedChildren" value="1" min="0" max="5">
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button class="btn btn--primary" id="updateFamilyProfileBtn">Update Profile</button>
+                    </div>
+                </div>
+
+                <!-- Child Planning Calculator -->
+                <div class="section-card">
+                    <h3><span class="section-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="4" width="18" height="18" rx="2"></rect>
+                            <line x1="16" y1="2" x2="16" y2="6"></line>
+                            <line x1="8" y1="2" x2="8" y2="6"></line>
+                            <line x1="3" y1="10" x2="21" y2="10"></line>
+                            <line x1="12" y1="14" x2="12" y2="18"></line>
+                            <line x1="10" y1="16" x2="14" y2="16"></line>
+                        </svg>
+                    </span>Child Planning Calculator</h3>
+                    <p>Estimate costs and plan for expanding your family</p>
+                    
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label class="form-label">Years Until Birth</label>
+                            <input type="number" class="form-control" id="fpYearsToBirth" value="2" min="0" max="15">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">One-time Birth Costs (₹)</label>
+                            <input type="number" class="form-control" id="fpBirthCosts" value="200000" step="10000">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Monthly Childcare Costs (₹)</label>
+                            <input type="number" class="form-control" id="fpMonthlyCare" value="15000" step="1000">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Inflation Rate (%)</label>
+                            <input type="number" class="form-control" id="fpChildInflation" value="8" step="0.5">
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button class="btn btn--primary" id="calculateChildCostsBtn">Calculate Child Costs</button>
+                    </div>
+
+                    <div id="childCostsResults" style="display:none;" class="results-box">
+                        <h4>Child Cost Projection</h4>
+                        <div class="result-grid">
+                            <div class="result-item">
+                                <span class="result-label">Future Birth Costs:</span>
+                                <span class="result-value" id="fpFutureBirthCosts">₹0</span>
+                            </div>
+                            <div class="result-item">
+                                <span class="result-label">Total First Year Costs:</span>
+                                <span class="result-value" id="fpFirstYearCosts">₹0</span>
+                            </div>
+                            <div class="result-item">
+                                <span class="result-label">Required Monthly Savings:</span>
+                                <span class="result-value" id="fpRequiredSavings">₹0</span>
+                            </div>
+                            <div class="result-item">
+                                <span class="result-label">5-Year Total Costs:</span>
+                                <span class="result-value" id="fp5YearCosts">₹0</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Education Planning -->
+                <div class="section-card">
+                    <h3><span class="section-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M22 10l-10-5-10 5 10 5 10-5z"></path>
+                            <path d="M6 12v5c3 3 9 3 12 0v-5"></path>
+                        </svg>
+                    </span>Comprehensive Education Planning</h3>
+                    <p>Plan for complete education journey from preschool to higher education</p>
+                    
+                    <div id="childrenEducationList"></div>
+                    
+                    <div class="form-actions">
+                        <button class="btn btn--secondary" id="addChildEducationBtn">+ Add Child</button>
+                    </div>
+
+                    <div id="educationPlanResults" style="display:none;" class="results-box">
+                        <h4>Total Education Investment Needed</h4>
+                        <div class="result-grid">
+                            <div class="result-item">
+                                <span class="result-label">Total Education Corpus:</span>
+                                <span class="result-value" id="fpTotalEducationCorpus">₹0</span>
+                            </div>
+                            <div class="result-item">
+                                <span class="result-label">Monthly SIP Required:</span>
+                                <span class="result-value" id="fpEducationSIP">₹0</span>
+                            </div>
+                            <div class="result-item">
+                                <span class="result-label">Expected Return Rate:</span>
+                                <span class="result-value" id="fpEducationReturn">12%</span>
+                            </div>
+                        </div>
+                        <canvas id="fpEducationTimelineChart" style="max-height: 300px;"></canvas>
+                    </div>
+                </div>
+
+                <!-- Marriage Planning -->
+                <div class="section-card">
+                    <h3><span class="section-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="14" r="5"></circle>
+                            <path d="M10 3h4l2 3h-8l2-3z"></path>
+                        </svg>
+                    </span>Wedding &amp; Marriage Planning</h3>
+                    <p>Plan for weddings, celebrations, and related expenses</p>
+                    
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label class="form-label">Number of Weddings to Plan</label>
+                            <input type="number" class="form-control" id="fpNumWeddings" value="0" min="0" max="10">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Average Years Until Wedding</label>
+                            <input type="number" class="form-control" id="fpYearsToWedding" value="20" min="0" max="40">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Current Wedding Cost (₹)</label>
+                            <input type="number" class="form-control" id="fpWeddingCost" value="3000000" step="100000">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Inflation Rate (%)</label>
+                            <input type="number" class="form-control" id="fpWeddingInflation" value="7" step="0.5">
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button class="btn btn--primary" id="calculateWeddingBtn">Calculate Wedding Costs</button>
+                    </div>
+
+                    <div id="weddingResults" style="display:none;" class="results-box">
+                        <h4>Wedding Planning Summary</h4>
+                        <div class="result-grid">
+                            <div class="result-item">
+                                <span class="result-label">Future Wedding Cost:</span>
+                                <span class="result-value" id="fpFutureWeddingCost">₹0</span>
+                            </div>
+                            <div class="result-item">
+                                <span class="result-label">Total for All Weddings:</span>
+                                <span class="result-value" id="fpTotalWeddingCost">₹0</span>
+                            </div>
+                            <div class="result-item">
+                                <span class="result-label">Monthly SIP Needed (12% return):</span>
+                                <span class="result-value" id="fpWeddingSIP">₹0</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Healthcare & Insurance -->
+                <div class="section-card">
+                    <h3><span class="section-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M12 5v14"></path>
+                            <path d="M5 12h14"></path>
+                        </svg>
+                    </span>Family Healthcare &amp; Insurance Planning</h3>
+                    <p>Ensure adequate protection for your family</p>
+                    
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label class="form-label">Current Health Insurance Coverage (₹)</label>
+                            <input type="number" class="form-control" id="fpHealthInsurance" value="500000" step="100000">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Recommended Coverage (₹)</label>
+                            <input type="number" class="form-control" id="fpRecommendedHealth" value="1000000" step="100000">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Current Life Insurance (₹)</label>
+                            <input type="number" class="form-control" id="fpLifeInsurance" value="5000000" step="500000">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Annual Income (₹)</label>
+                            <input type="number" class="form-control" id="fpAnnualIncome" value="2400000" step="100000">
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button class="btn btn--primary" id="calculateInsuranceBtn">Calculate Insurance Needs</button>
+                    </div>
+
+                    <div id="insuranceResults" style="display:none;" class="results-box">
+                        <h4>Insurance Recommendations</h4>
+                        <div class="result-grid">
+                            <div class="result-item">
+                                <span class="result-label">Health Insurance Gap:</span>
+                                <span class="result-value" id="fpHealthGap">₹0</span>
+                            </div>
+                            <div class="result-item">
+                                <span class="result-label">Recommended Life Cover (10x income):</span>
+                                <span class="result-value" id="fpRecommendedLife">₹0</span>
+                            </div>
+                            <div class="result-item">
+                                <span class="result-label">Life Insurance Gap:</span>
+                                <span class="result-value" id="fpLifeGap">₹0</span>
+                            </div>
+                            <div class="result-item">
+                                <span class="result-label">Protection Status:</span>
+                                <span class="result-value" id="fpProtectionStatus">-</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Emergency Fund for Family -->
+                <div class="section-card">
+                    <h3><span class="section-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                        </svg>
+                    </span>Family Emergency Fund</h3>
+                    <p>Build a safety net for unexpected family expenses</p>
+                    
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label class="form-label">Monthly Family Expenses (₹)</label>
+                            <input type="number" class="form-control" id="fpMonthlyExpenses" value="120000" step="5000">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Emergency Fund Months</label>
+                            <select class="form-control" id="fpEmergencyMonths">
+                                <option value="3">3 Months</option>
+                                <option value="6" selected>6 Months</option>
+                                <option value="9">9 Months</option>
+                                <option value="12">12 Months</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Current Emergency Savings (₹)</label>
+                            <input type="number" class="form-control" id="fpCurrentEmergency" value="0" step="10000">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Time to Build Fund (months)</label>
+                            <input type="number" class="form-control" id="fpEmergencyTimeframe" value="12" min="1" max="60">
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button class="btn btn--primary" id="calculateEmergencyBtn">Calculate Emergency Fund</button>
+                    </div>
+
+                    <div id="emergencyResults" style="display:none;" class="results-box">
+                        <h4>Emergency Fund Plan</h4>
+                        <div class="result-grid">
+                            <div class="result-item">
+                                <span class="result-label">Target Emergency Fund:</span>
+                                <span class="result-value" id="fpTargetEmergency">₹0</span>
+                            </div>
+                            <div class="result-item">
+                                <span class="result-label">Amount Needed:</span>
+                                <span class="result-value" id="fpEmergencyGap">₹0</span>
+                            </div>
+                            <div class="result-item">
+                                <span class="result-label">Monthly Savings Required:</span>
+                                <span class="result-value" id="fpEmergencyMonthlySavings">₹0</span>
+                            </div>
+                            <div class="result-item">
+                                <span class="result-label">Progress:</span>
+                                <span class="result-value" id="fpEmergencyProgress">0%</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Complete Family Financial Summary -->
+                <div class="section-card">
+                    <h3><span class="section-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M3 3v18h18"></path>
+                            <rect x="7" y="12" width="3" height="6"></rect>
+                            <rect x="12" y="8" width="3" height="10"></rect>
+                            <rect x="17" y="5" width="3" height="13"></rect>
+                        </svg>
+                    </span>Complete Family Financial Roadmap</h3>
+                    <div class="form-actions">
+                        <button class="btn btn--primary" id="generateFamilyRoadmapBtn">Generate Complete Roadmap</button>
+                    </div>
+
+                    <div id="familyRoadmapResults" style="display:none;" class="results-box">
+                        <h4>Your Family's Financial Journey</h4>
+                        <div class="result-grid">
+                            <div class="result-item">
+                                <span class="result-label">Total Capital Needed:</span>
+                                <span class="result-value" id="fpTotalCapitalNeeded">₹0</span>
+                            </div>
+                            <div class="result-item">
+                                <span class="result-label">Total Monthly Commitments:</span>
+                                <span class="result-value" id="fpTotalMonthlyCommitments">₹0</span>
+                            </div>
+                            <div class="result-item">
+                                <span class="result-label">Years of Planning:</span>
+                                <span class="result-value" id="fpPlanningHorizon">0 years</span>
+                            </div>
+                            <div class="result-item">
+                                <span class="result-label">Financial Readiness:</span>
+                                <span class="result-value" id="fpReadinessScore">0%</span>
+                            </div>
+                        </div>
+                        <canvas id="familyRoadmapChart" style="max-height: 400px;"></canvas>
+                        
+                        <div id="familyMilestonesList" style="margin-top: 20px;">
+                            <h4>Key Milestones Timeline</h4>
+                            <div id="milestonesTimeline"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Reports Tab -->
             <div class="tab-content" id="reports-tab">
                 <div class="content-header">
-                    <h2>Reports &amp; Export</h2>
-                    <p class="content-subtitle">Generate comprehensive financial reports</p>
+                    <h2>Reports &amp; Insights</h2>
+                    <p class="content-subtitle">Your decision engine: health checks, scenarios, and annual reviews</p>
                 </div>
-                
+
+                <!-- Single tab: Financial Health Report -->
+
+                <!-- Financial Health Report -->
+                <div class="section-card report-section" id="health-report">
+                    <h3>Comprehensive Financial Health</h3>
+                    <div class="stats-grid" id="healthScoreSummary">
+                        <div class="stat-card">
+                            <div class="stat-icon" style="background: var(--color-bg-1);">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                                    <path d="M21 12a9 9 0 1 1-9-9"/>
+                                    <path d="M21 12a9 9 0 0 0-9-9v9z"/>
+                                </svg>
+                            </div>
+                            <div class="stat-content">
+                                <div class="stat-label">Health Score</div>
+                                <div class="stat-value" id="healthTotalScore">0</div>
+                                <div class="stat-sub" id="healthRating">-</div>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon" style="background: var(--color-bg-2);">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                                    <line x1="12" y1="1" x2="12" y2="23"></line>
+                                    <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+                                </svg>
+                            </div>
+                            <div class="stat-content">
+                                <div class="stat-label">Net Worth</div>
+                                <div class="stat-value" id="healthNetWorth">₹0</div>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon" style="background: var(--color-bg-3);">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                                    <polyline points="3 7 9 13 13 9 21 17"></polyline>
+                                    <polyline points="21 10 21 17 14 17"></polyline>
+                                </svg>
+                            </div>
+                            <div class="stat-content">
+                                <div class="stat-label">Debt-to-Income</div>
+                                <div class="stat-value" id="healthDTI">0%</div>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon" style="background: var(--color-bg-4);">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                                    <path d="M12 3l9 5v2H3V8l9-5z"/>
+                                    <path d="M4 21v-8h16v8"/>
+                                    <path d="M9 21v-6"/>
+                                    <path d="M15 21v-6"/>
+                                </svg>
+                            </div>
+                            <div class="stat-content">
+                                <div class="stat-label">Emergency Coverage</div>
+                                <div class="stat-value" id="healthEmergencyMonths">0 mo</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <h4>Net Worth Statement</h4>
+                    <div class="summary-grid">
+                        <div class="summary-item"><span>Total Assets</span><strong id="rptTotalAssets">₹0</strong></div>
+                        <div class="summary-item minus"><span>Total Liabilities</span><strong id="rptTotalLiabilities">₹0</strong></div>
+                        <div class="summary-item networth"><span>Net Worth</span><strong id="rptNetWorth">₹0</strong></div>
+                    </div>
+                    <div class="charts-row">
+                        <div class="chart-card">
+                            <h4>Asset Allocation</h4>
+                            <div class="chart-container"><canvas id="rptAllocationChart"></canvas></div>
+                        </div>
+                        <div class="chart-card">
+                            <h4>Cash Flow</h4>
+                            <div class="chart-container"><canvas id="rptCashFlowChart"></canvas></div>
+                        </div>
+                        <div class="chart-card">
+                            <h4>Risk Profile</h4>
+                            <div class="chart-container"><canvas id="rptRiskRadar"></canvas></div>
+                        </div>
+                    </div>
+
+                    <h4>Goals Progress</h4>
+                    <div id="rptGoalsTable" class="data-table-container"></div>
+
+                    <h4>Prioritized Action Items</h4>
+                    <ul id="rptActionItems"></ul>
+
+                    <div class="form-actions">
+                        <button class="btn btn--primary" id="exportHealthPdfBtn">Export PDF Report</button>
+                    </div>
+                </div>
+
+                <!-- Family Report -->
                 <div class="section-card">
-                    <h3>Generate Report</h3>
-                    <p>Create a comprehensive report of your financial situation</p>
-                    <div class="report-options">
-                        <label class="checkbox-label">
-                            <input type="checkbox" checked id="reportNetWorth"> Include Net Worth Statement
-                        </label>
-                        <label class="checkbox-label">
-                            <input type="checkbox" checked id="reportGoals"> Include Financial Goals
-                        </label>
-                        <label class="checkbox-label">
-                            <input type="checkbox" checked id="reportPortfolio"> Include Portfolio Analysis
-                        </label>
-                        <label class="checkbox-label">
-                            <input type="checkbox" checked id="reportProjections"> Include Projections
+                    <div class="section-header" style="display: flex; justify-content: space-between; align-items: center;">
+                        <h3>Family Financial Report</h3>
+                        <div style="display: flex; gap: 8px;">
+                            <button class="btn btn--primary" id="generateFamilyReportBtn">Generate Report</button>
+                            <button class="btn btn--outline" id="toggleFamilyReportBtn" style="display: none;">Hide Report</button>
+                        </div>
+                    </div>
+                    <div id="familyReportContainer" style="margin-top: 16px; display: none;"></div>
+                </div>
+
+                <!-- General Report -->
+                <div class="section-card">
+                    <div class="section-header" style="display: flex; justify-content: space-between; align-items: center;">
+                        <h3>General Financial Report</h3>
+                        <div style="display: flex; gap: 8px;">
+                            <button class="btn btn--primary" id="generateGeneralReportBtn">Generate Report</button>
+                            <button class="btn btn--secondary" id="downloadReportPDFBtn" style="display: none;">Download PDF</button>
+                            <button class="btn btn--outline" id="toggleGeneralReportBtn" style="display: none;">Hide Report</button>
+                        </div>
+                    </div>
+                    <div class="form-group" style="margin-top: 16px;">
+                        <label>
+                            <input type="checkbox" id="includeNetWorth" checked> Include Net Worth Statement
                         </label>
                     </div>
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" id="includeGoals" checked> Include Goals Analysis
+                        </label>
+                    </div>
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" id="includePortfolio" checked> Include Portfolio Summary
+                        </label>
+                    </div>
+                    <div id="reportPreview" style="margin-top: 16px; display: none;"></div>
+                </div>
+
+                <!-- Data Export/Import -->
+                <div class="section-card">
+                    <h3>Data Backup</h3>
+                    <p style="color: #666; margin-bottom: 16px;">Export or import your financial data as JSON for backup purposes.</p>
                     <div class="report-actions">
-                        <button class="btn btn--primary" id="generateReportBtn">Generate Report</button>
                         <button class="btn btn--secondary" id="exportJSONBtn">Export Data (JSON)</button>
                         <button class="btn btn--secondary" id="importJSONBtn">Import Data (JSON)</button>
                         <input type="file" id="importFileInput" accept=".json" style="display: none;">
                     </div>
                 </div>
+            </div>
 
-                <div class="section-card" id="reportPreview" style="display: none;">
-                    <h3>Report Preview</h3>
-                    <div id="reportContent" class="report-content"></div>
-                    <button class="btn btn--primary" id="printReportBtn">Print Report</button>
+            <!-- Advanced Family Planning Tab (accessed from Family Planning) -->
+            <div class="tab-content" id="family-advanced-tab">
+                <div class="content-header">
+                    <h2>Advanced Family Planning</h2>
+                    <p class="content-subtitle">Dual retirement, elder care, children's education, and tax optimization</p>
+                </div>
+
+                <!-- Dual/Multi-Member Retirement Planning -->
+                <div class="section-card">
+                    <h3><span class="section-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="4" width="18" height="18" rx="2"></rect>
+                            <line x1="16" y1="2" x2="16" y2="6"></line>
+                            <line x1="8" y1="2" x2="8" y2="6"></line>
+                            <line x1="3" y1="10" x2="21" y2="10"></line>
+                        </svg>
+                    </span>Dual Retirement Planning</h3>
+                    <p>Visualize phased retirement for multiple earners in the family</p>
+                    <button class="btn btn--primary" id="calculateDualRetirementBtn">Calculate Dual Retirement</button>
+                    
+                    <div id="dualRetirementResults" style="display: none; margin-top: 20px;">
+                        <div class="chart-card">
+                            <h4>Household Income Timeline</h4>
+                            <div class="chart-container" style="height: 400px;">
+                                <canvas id="dualRetirementChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Elder Care & Multi-generational Planning -->
+                <div class="section-card">
+                    <h3><span class="section-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M20.8 4.6c-1.9-1.8-5-1.8-6.9 0L12 6.5l-1.9-1.9c-1.9-1.8-5-1.8-6.9 0-2 1.9-2 5 0 6.9L12 21l8.8-9.5c2-1.9 2-5 0-6.9z"></path>
+                        </svg>
+                    </span>Elder Care Planning</h3>
+                    <p>Plan for parents or elderly dependents - medical reserves, monthly support, longevity planning</p>
+                    <button class="btn btn--primary" id="addElderCareBtn">Add Elder Care Plan</button>
+                    
+                    <div id="elderCareFormContainer" class="form-container" style="display: none; margin-top: 15px;">
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label class="form-label">Family Member</label>
+                                <select class="form-control" id="elderCareMember"></select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Monthly Support (₹)</label>
+                                <input type="number" class="form-control" id="elderMonthlySupport" placeholder="25000">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Medical Reserve (₹)</label>
+                                <input type="number" class="form-control" id="elderMedicalReserve" placeholder="500000">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Life Expectancy (Age)</label>
+                                <input type="number" class="form-control" id="elderLifeExpectancy" value="85">
+                            </div>
+                        </div>
+                        <div class="form-actions">
+                            <button class="btn btn--primary" id="saveElderCareBtn">Save Plan</button>
+                            <button class="btn btn--secondary" id="cancelElderCareBtn">Cancel</button>
+                        </div>
+                    </div>
+                    
+                    <div id="elderCareList" style="margin-top: 20px;"></div>
+                </div>
+
+                <!-- Children's Education Timeline -->
+                <div class="section-card">
+                    <h3><span class="section-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M22 10l-10-5-10 5 10 5 10-5z"></path>
+                            <path d="M6 12v5c3 3 9 3 12 0v-5"></path>
+                        </svg>
+                    </span>Children's Education Timeline</h3>
+                    <p>Track education milestones, costs, and funding for each child</p>
+                    <button class="btn btn--primary" id="addEducationPlanBtn">Add Education Milestone</button>
+                    
+                    <div id="educationPlanFormContainer" class="form-container" style="display: none; margin-top: 15px;">
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label class="form-label">Child</label>
+                                <select class="form-control" id="educationChild"></select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Milestone</label>
+                                <select class="form-control" id="educationMilestone">
+                                    <option value="Primary School">Primary School</option>
+                                    <option value="Secondary School">Secondary School</option>
+                                    <option value="High School">High School</option>
+                                    <option value="Undergraduate">Undergraduate</option>
+                                    <option value="Postgraduate">Postgraduate</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Target Year</label>
+                                <input type="number" class="form-control" id="educationTargetYear" placeholder="2030">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Estimated Cost (₹)</label>
+                                <input type="number" class="form-control" id="educationCost" placeholder="1000000">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Already Saved (₹)</label>
+                                <input type="number" class="form-control" id="educationSaved" placeholder="0">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">PPF/529 Account (Optional)</label>
+                                <input type="text" class="form-control" id="educationPPF" placeholder="Account number">
+                            </div>
+                        </div>
+                        <div class="form-actions">
+                            <button class="btn btn--primary" id="saveEducationPlanBtn">Save Plan</button>
+                            <button class="btn btn--secondary" id="cancelEducationPlanBtn">Cancel</button>
+                        </div>
+                    </div>
+                    
+                    <div id="educationPlansList" style="margin-top: 20px;"></div>
+                    
+                    <div class="chart-card" style="margin-top: 20px;">
+                        <h4>Education Funding Timeline</h4>
+                        <div class="chart-container" style="height: 300px;">
+                            <canvas id="educationTimelineChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Family Tax Optimization -->
+                <div class="section-card">
+                    <h3><span class="section-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="19" y1="5" x2="5" y2="19"></line>
+                            <circle cx="7" cy="7" r="2"></circle>
+                            <circle cx="17" cy="17" r="2"></circle>
+                        </svg>
+                    </span>Family Tax Optimization</h3>
+                    <p>Compare joint vs. separate filing, optimize deductions across family members</p>
+                    
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label class="form-label">Tax Filing Mode</label>
+                            <select class="form-control" id="taxFilingModeSelect">
+                                <option value="Individual">Individual</option>
+                                <option value="Joint">Joint (if applicable)</option>
+                                <option value="Separate">Married Filing Separately</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <button class="btn btn--primary" id="calculateTaxBtn">Calculate Tax Optimization</button>
+                    
+                    <div id="taxOptimizationResults" style="display: none; margin-top: 20px;"></div>
+                </div>
+
+                <!-- Family-Specific Calculators -->
+                <div class="section-card">
+                    <h3><span class="section-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="4" y="2" width="16" height="20" rx="2"></rect>
+                            <line x1="8" y1="6" x2="16" y2="6"></line>
+                            <line x1="8" y1="10" x2="16" y2="10"></line>
+                            <line x1="8" y1="14" x2="12" y2="14"></line>
+                            <line x1="12" y1="18" x2="16" y2="18"></line>
+                        </svg>
+                    </span>Family Calculators</h3>
+                    
+                    <!-- Dependent Cost Calculator -->
+                    <div style="margin: 20px 0; padding: 20px; background: var(--color-bg-1); border-radius: 12px;">
+                        <h4>Cost to Support a Dependent</h4>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label class="form-label">Dependent Type</label>
+                                <select class="form-control" id="dependentType">
+                                    <option value="Child">Child</option>
+                                    <option value="Parent">Parent/Elder</option>
+                                    <option value="Spouse">Spouse</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Current Age</label>
+                                <input type="number" class="form-control" id="dependentAge" placeholder="25">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Lifestyle</label>
+                                <select class="form-control" id="dependentLifestyle">
+                                    <option value="Basic">Basic</option>
+                                    <option value="Moderate">Moderate</option>
+                                    <option value="Comfortable">Comfortable</option>
+                                    <option value="Luxurious">Luxurious</option>
+                                </select>
+                            </div>
+                        </div>
+                        <button class="btn btn--primary" id="calculateDependentCostBtn">Calculate Cost</button>
+                        <div id="dependentCostResults" style="display: none;"></div>
+                    </div>
+
+                    <!-- Family Health Insurance Calculator -->
+                    <div style="margin: 20px 0; padding: 20px; background: var(--color-bg-1); border-radius: 12px;">
+                        <h4>Family Health Insurance Requirement</h4>
+                        <p style="font-size: 0.9rem; color: var(--color-text-secondary);">Based on your family size and composition</p>
+                        <button class="btn btn--primary" id="calculateFamilyInsuranceBtn">Calculate Insurance Needs</button>
+                        <div id="familyInsuranceResults" style="display: none;"></div>
+                    </div>
+
+                    <!-- Household Emergency Fund Calculator -->
+                    <div style="margin: 20px 0; padding: 20px; background: var(--color-bg-1); border-radius: 12px;">
+                        <h4>Family Emergency Fund Recommendation</h4>
+                        <div class="form-group">
+                            <label class="form-label">Monthly Household Expenses (₹)</label>
+                            <input type="number" class="form-control" id="familyMonthlyExpenses" placeholder="150000">
+                        </div>
+                        <button class="btn btn--primary" id="calculateEmergencyFundBtn">Calculate Emergency Fund</button>
+                        <div id="familyEmergencyResults" style="display: none;"></div>
+                    </div>
                 </div>
             </div>
         </main>
     </div>
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" integrity="sha512-BNa5zJ9tXg8iX1mHh3U2y5P5pG4+2bZl7nK+qQ9v0k6g6b8tJpI0yXvGkXl4+J9zqM1qXGk8sH7n0Z5q1Y5G7Q==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" integrity="sha512-/XG9y5mQwG5fLh7mVhQ8e0o2nVn2QwY6g8yZ3m4gF6q2v3s9y1l2k3q4r5t6u7v8w9x0y1z2A3B4C5D6E7F8Gg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <script src="app.js"></script>
+    <!-- Chatbot UI -->
+    <button id="chatbotToggle" class="chatbot-toggle" title="Ask AI Advisor">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M8 15s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
+    </button>
+    <div id="chatbotWindow" class="chatbot-window hidden">
+        <div class="chatbot-header">
+            <span>AI Financial Advisor</span>
+            <button id="chatbotClose" class="chatbot-close" title="Close">×</button>
+        </div>
+        <div id="chatbotMessages" class="chatbot-messages"></div>
+        <form id="chatbotForm" class="chatbot-form">
+            <input id="chatbotInput" type="text" placeholder="Ask a financial question..." autocomplete="off" required />
+            <button type="submit" class="btn btn--primary btn--sm">Send</button>
+        </form>
+    </div>
 </body>
 </html>
