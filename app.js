@@ -15,25 +15,377 @@ function appendChatMessage(role, text) {
   messages.scrollTop = messages.scrollHeight;
 }
 
+// ============================================================================
+// AI CHATBOT WITH COMPREHENSIVE DATA ACCESS
+// ============================================================================
+
+// Function to gather ALL application data for AI context
+function gatherComprehensiveFinancialData() {
+  try {
+    const data = {
+      // 1. NET WORTH DATA
+      netWorth: {
+        total: 0,
+        totalAssets: 0,
+        totalLiabilities: 0,
+        debtToAssetRatio: 0,
+        savingsRate: 0
+      },
+      
+      // 2. GOALS DATA (with calculations)
+      goals: {
+        count: 0,
+        items: [],
+        totalMonthlySIPNeeded: 0,
+        criticalCount: 0,
+        completedCount: 0
+      },
+      
+      // 3. PORTFOLIO DATA
+      portfolio: {
+        totalValue: 0,
+        weightedReturn: 0,
+        allocations: [],
+        riskLevel: 'Unknown'
+      },
+      
+      // 4. MONTE CARLO RESULTS (if available)
+      monteCarlo: {
+        hasResults: false,
+        probability: 0,
+        median: 0,
+        best: 0,
+        worst: 0,
+        target: 0
+      },
+      
+      // 5. REQUIRED RETURN (if calculated)
+      requiredReturn: {
+        hasResults: false,
+        requiredRate: 0,
+        gap: 0,
+        verdict: ''
+      },
+      
+      // 6. FAMILY MEMBERS
+      family: {
+        count: 0,
+        members: []
+      }
+    };
+    
+    // Safely get net worth data
+    if (typeof networth !== 'undefined' && networth.calculateNetWorth) {
+      data.netWorth.total = networth.calculateNetWorth();
+      data.netWorth.totalAssets = networth.calculateTotalAssets();
+      data.netWorth.totalLiabilities = networth.calculateTotalLiabilities();
+      
+      if (data.netWorth.totalAssets > 0) {
+        data.netWorth.debtToAssetRatio = (data.netWorth.totalLiabilities / data.netWorth.totalAssets * 100);
+        data.netWorth.savingsRate = ((data.netWorth.totalAssets - data.netWorth.totalLiabilities) / data.netWorth.totalAssets * 100);
+      }
+    }
+    
+    // Safely get goals data
+    if (typeof appState !== 'undefined' && appState.goals && Array.isArray(appState.goals)) {
+      data.goals.count = appState.goals.length;
+      const currentYear = new Date().getFullYear();
+      
+      appState.goals.forEach(g => {
+        const years = g.targetYear - currentYear;
+        if (years <= 0) return;
+        
+        const targetAmount = g.currentCost * Math.pow(1 + g.inflation / 100, years);
+        const monthsToGoal = years * 12;
+        const monthlyReturn = g.return / 100 / 12;
+        const futureValue = g.saved * Math.pow(1 + g.return / 100, years);
+        const gap = targetAmount - futureValue;
+        
+        let requiredMonthlySIP = 0;
+        if (gap > 0 && monthsToGoal > 0 && monthlyReturn > 0) {
+          requiredMonthlySIP = (gap * monthlyReturn) / (Math.pow(1 + monthlyReturn, monthsToGoal) - 1);
+        }
+        
+        const goalData = {
+          name: g.name,
+          category: g.category,
+          targetYear: g.targetYear,
+          yearsLeft: years,
+          currentCost: g.currentCost,
+          targetAmount: targetAmount,
+          saved: g.saved,
+          gap: gap,
+          requiredMonthlySIP: requiredMonthlySIP,
+          expectedReturn: g.return,
+          inflation: g.inflation,
+          priority: g.priority
+        };
+        
+        data.goals.items.push(goalData);
+        data.goals.totalMonthlySIPNeeded += requiredMonthlySIP;
+        
+        if (g.return > 18 || requiredMonthlySIP > g.saved * 0.1) {
+          data.goals.criticalCount++;
+        }
+        if (g.saved >= targetAmount) {
+          data.goals.completedCount++;
+        }
+      });
+    }
+    
+    // Safely get portfolio data
+    if (typeof appState !== 'undefined' && appState.assets && Array.isArray(appState.assets)) {
+      const portfolioAssets = appState.assets.filter(a => 
+        ['Stocks', 'Mutual Funds', 'Fixed Deposit'].includes(a.type)
+      );
+      
+      data.portfolio.totalValue = portfolioAssets.reduce((sum, a) => sum + (a.value || 0), 0);
+      
+      if (portfolioAssets.length > 0 && data.portfolio.totalValue > 0) {
+        let totalReturn = 0;
+        portfolioAssets.forEach(a => {
+          const allocation = (a.value || 0) / data.portfolio.totalValue;
+          const returnRate = a.returnRate || 10;
+          totalReturn += allocation * returnRate;
+          
+          data.portfolio.allocations.push({
+            type: a.type,
+            value: a.value,
+            allocation: allocation * 100,
+            returnRate: returnRate
+          });
+        });
+        data.portfolio.weightedReturn = totalReturn;
+        
+        const equityAllocation = portfolioAssets
+          .filter(a => a.type === 'Stocks' || a.type === 'Mutual Funds')
+          .reduce((sum, a) => sum + (a.value || 0), 0) / data.portfolio.totalValue * 100;
+        
+        if (equityAllocation > 70) data.portfolio.riskLevel = 'Aggressive';
+        else if (equityAllocation > 40) data.portfolio.riskLevel = 'Moderate';
+        else data.portfolio.riskLevel = 'Conservative';
+      }
+    }
+    
+    // Check for Monte Carlo results
+    try {
+      const mcProbElement = document.getElementById('mcProbability');
+      if (mcProbElement && mcProbElement.textContent && mcProbElement.textContent !== '-') {
+        data.monteCarlo.hasResults = true;
+        data.monteCarlo.probability = parseFloat(mcProbElement.textContent) || 0;
+        
+        const mcMedianEl = document.getElementById('mcMedian');
+        const mcBestEl = document.getElementById('mcBest');
+        const mcWorstEl = document.getElementById('mcWorst');
+        const mcTargetEl = document.getElementById('mcTarget');
+        
+        if (mcMedianEl) data.monteCarlo.median = parseFloat(mcMedianEl.textContent.replace(/[₹,]/g, '')) || 0;
+        if (mcBestEl) data.monteCarlo.best = parseFloat(mcBestEl.textContent.replace(/[₹,]/g, '')) || 0;
+        if (mcWorstEl) data.monteCarlo.worst = parseFloat(mcWorstEl.textContent.replace(/[₹,]/g, '')) || 0;
+        if (mcTargetEl) data.monteCarlo.target = parseFloat(mcTargetEl.value) || 0;
+      }
+    } catch (e) {
+      console.log('Monte Carlo results not available');
+    }
+    
+    // Check for Required Return results
+    try {
+      const rrRequiredEl = document.getElementById('rrRequired');
+      if (rrRequiredEl && rrRequiredEl.textContent && rrRequiredEl.textContent !== '-') {
+        data.requiredReturn.hasResults = true;
+        data.requiredReturn.requiredRate = parseFloat(rrRequiredEl.textContent) || 0;
+        
+        const rrExpectedEl = document.getElementById('rrExpected');
+        if (rrExpectedEl) {
+          const expectedReturn = parseFloat(rrExpectedEl.value) || 12;
+          data.requiredReturn.gap = data.requiredReturn.requiredRate - expectedReturn;
+          
+          if (data.requiredReturn.requiredRate < 12) {
+            data.requiredReturn.verdict = 'Achievable - Conservative';
+          } else if (data.requiredReturn.requiredRate < 18) {
+            data.requiredReturn.verdict = 'Challenging - Requires Discipline';
+          } else {
+            data.requiredReturn.verdict = 'Aggressive - High Risk';
+          }
+        }
+      }
+    } catch (e) {
+      console.log('Required Return results not available');
+    }
+    
+    // Safely get family data
+    if (typeof appState !== 'undefined' && appState.family && Array.isArray(appState.family)) {
+      data.family.count = appState.family.length;
+      data.family.members = appState.family.map(m => ({
+        name: m.name || 'Unknown',
+        age: m.age || 0,
+        relation: m.relation || 'Unknown',
+        income: m.income || 0
+      }));
+    }
+    
+    return data;
+  } catch (error) {
+    console.error('Error gathering financial data:', error);
+    // Return minimal safe data structure
+    return {
+      netWorth: { total: 0, totalAssets: 0, totalLiabilities: 0, debtToAssetRatio: 0, savingsRate: 0 },
+      goals: { count: 0, items: [], totalMonthlySIPNeeded: 0, criticalCount: 0, completedCount: 0 },
+      portfolio: { totalValue: 0, weightedReturn: 0, allocations: [], riskLevel: 'Unknown' },
+      monteCarlo: { hasResults: false, probability: 0, median: 0, best: 0, worst: 0, target: 0 },
+      requiredReturn: { hasResults: false, requiredRate: 0, gap: 0, verdict: '' },
+      family: { count: 0, members: [] }
+    };
+  }
+}
+
 async function callAIChatAPI(messages) {
-  // Build context from user data
+  // Gather ALL data from entire application
+  const allData = gatherComprehensiveFinancialData();
+  
+  // Build comprehensive, data-rich context
+  let contextText = `You are Gini, an expert financial advisor AI with access to ALL user data across the platform.
+
+═══════════════════════════════════════════════════════
+COMPLETE FINANCIAL PROFILE
+═══════════════════════════════════════════════════════
+
+📊 NET WORTH SUMMARY:
+• Total Net Worth: ${utils.formatCurrency(allData.netWorth.total)}
+• Assets: ${utils.formatCurrency(allData.netWorth.totalAssets)}
+• Liabilities: ${utils.formatCurrency(allData.netWorth.totalLiabilities)}
+• Debt-to-Asset Ratio: ${allData.netWorth.debtToAssetRatio.toFixed(1)}% ${allData.netWorth.debtToAssetRatio > 50 ? '🚨 HIGH RISK' : allData.netWorth.debtToAssetRatio > 30 ? '⚠️ MODERATE' : '✅ HEALTHY'}
+• Savings Rate: ${allData.netWorth.savingsRate.toFixed(1)}%
+
+`;
+
+  // Add Goals Analysis
+  if (allData.goals.count > 0) {
+    contextText += `🎯 GOALS ANALYSIS (${allData.goals.count} Active Goals):
+`;
+    allData.goals.items.forEach(g => {
+      contextText += `• ${g.name} (${g.category}): Target ₹${(g.targetAmount/100000).toFixed(1)}L by ${g.targetYear} (${g.yearsLeft}y left)
+  - Current savings: ₹${(g.saved/100000).toFixed(1)}L
+  - Gap to cover: ₹${(g.gap/100000).toFixed(1)}L
+  - Required monthly SIP: ₹${(g.requiredMonthlySIP/1000).toFixed(1)}K
+  - Expected return: ${g.expectedReturn}% | Inflation: ${g.inflation}%
+  - Priority: ${g.priority}
+`;
+    });
+    contextText += `\n📈 TOTAL Monthly SIP Needed: ₹${(allData.goals.totalMonthlySIPNeeded/1000).toFixed(1)}K across all goals\n`;
+    if (allData.goals.criticalCount > 0) {
+      contextText += `⚠️ ${allData.goals.criticalCount} goal(s) need attention (aggressive returns or high SIP required)\n`;
+    }
+    if (allData.goals.completedCount > 0) {
+      contextText += `🎉 ${allData.goals.completedCount} goal(s) already achieved!\n`;
+    }
+  } else {
+    contextText += `🎯 GOALS: No goals set yet. Recommend creating financial goals.\n`;
+  }
+
+  // Add Portfolio Analysis
+  contextText += `\n💼 PORTFOLIO ANALYSIS:
+• Total Portfolio Value: ${utils.formatCurrency(allData.portfolio.totalValue)}
+• Weighted Avg Return: ${allData.portfolio.weightedReturn.toFixed(2)}%
+• Risk Profile: ${allData.portfolio.riskLevel}
+`;
+  
+  if (allData.portfolio.allocations.length > 0) {
+    contextText += `• Asset Allocation:\n`;
+    allData.portfolio.allocations.forEach(a => {
+      contextText += `  - ${a.type}: ${utils.formatCurrency(a.value)} (${a.allocation.toFixed(1)}%) @ ${a.returnRate}% return\n`;
+    });
+  }
+
+  // Add Monte Carlo Results (if available)
+  if (allData.monteCarlo.hasResults) {
+    contextText += `\n🎲 MONTE CARLO SIMULATION RESULTS:
+• Success Probability: ${allData.monteCarlo.probability.toFixed(1)}% ${allData.monteCarlo.probability > 90 ? '✅ EXCELLENT' : allData.monteCarlo.probability > 75 ? '✓ GOOD' : allData.monteCarlo.probability > 50 ? '⚠️ MODERATE' : '🚨 LOW'}
+• Target Corpus: ${utils.formatCurrency(allData.monteCarlo.target)}
+• Median Outcome: ${utils.formatCurrency(allData.monteCarlo.median)}
+• Best Case (90th %ile): ${utils.formatCurrency(allData.monteCarlo.best)}
+• Worst Case (10th %ile): ${utils.formatCurrency(allData.monteCarlo.worst)}
+• Interpretation: ${allData.monteCarlo.probability}% chance of reaching ₹${(allData.monteCarlo.target/100000).toFixed(1)}L target
+`;
+  }
+
+  // Add Required Return Results (if available)
+  if (allData.requiredReturn.hasResults) {
+    contextText += `\n📊 REQUIRED RETURN CALCULATION:
+• Required Annual Return: ${allData.requiredReturn.requiredRate.toFixed(2)}%
+• Gap vs Expected: ${allData.requiredReturn.gap > 0 ? '+' : ''}${allData.requiredReturn.gap.toFixed(2)}%
+• Verdict: ${allData.requiredReturn.verdict}
+${allData.requiredReturn.requiredRate > 18 ? '🚨 WARNING: >18% returns are very difficult to achieve consistently. Consider adjusting goals or increasing contributions.' : ''}
+${allData.requiredReturn.requiredRate > 15 && allData.requiredReturn.requiredRate <= 18 ? '⚠️ CHALLENGING: Requires aggressive equity allocation and disciplined investing.' : ''}
+${allData.requiredReturn.requiredRate <= 12 ? '✅ ACHIEVABLE: Conservative diversified portfolio can meet this target.' : ''}
+`;
+  }
+
+  // Add Family Context
+  if (allData.family.count > 0) {
+    contextText += `\n👨‍👩‍👧‍👦 FAMILY MEMBERS (${allData.family.count}):
+`;
+    allData.family.members.forEach(m => {
+      contextText += `• ${m.name}, Age ${m.age} (${m.relation})${m.income > 0 ? ` - Income: ${utils.formatCurrency(m.income)}/month` : ''}\n`;
+    });
+  }
+
+  contextText += `\n═══════════════════════════════════════════════════════
+AI ADVISOR INSTRUCTIONS
+═══════════════════════════════════════════════════════
+
+YOU HAVE ACCESS TO ALL DATA ABOVE. Use it intelligently.
+
+RESPONSE RULES:
+1. Be SPECIFIC with numbers from the data (don't make up values)
+2. If user asks about Monte Carlo, Required Return, Goals, Portfolio - YOU HAVE THE DATA above
+3. Give ACTIONABLE recommendations with calculations
+4. Keep responses 60-80 words, conversational
+5. Progress conversation - don't repeat same info
+
+FORMATTING RULES (CRITICAL):
+• Use PLAIN TEXT ONLY - no markdown, no asterisks, no bullets
+• For lists, use numbered format: "1) Item one 2) Item two 3) Item three"
+• For tables, use this simple format:
+  Goal 1: Home Purchase needs ₹45K/month over 5 years
+  Goal 2: Education needs ₹32K/month over 8 years
+  Total: ₹77K/month required
+• Separate sections with a blank line, not with symbols
+• Write like you're texting a smart friend - natural, direct, helpful
+
+EXAMPLE GOOD RESPONSE:
+"Your 6 goals need ₹95K monthly SIP total. That 18% required return is aggressive. Three realistic options: 1) Increase current ₹50K savings to ₹75K monthly 2) Extend flexible goals by 3 years to drop return need to 12% 3) Prioritize top 4 goals, defer the rest. Which approach works for your budget?"
+
+EXAMPLE BAD RESPONSE (Don't do this):
+"**Analysis:** Your goals are:
+- Goal 1: ₹45K
+- Goal 2: ₹32K
+**Recommendation:** Increase SIP"
+
+WHEN USER SAYS:
+• "analyze this" / "evaluate" → Use the relevant section data above
+• "monte carlo results" → Reference MONTE CARLO section
+• "my goals" → Reference GOALS section  
+• "portfolio" → Reference PORTFOLIO section
+• "is this realistic" → Comment on Required Return or Goal SIPs
+
+SMART ANALYSIS:
+• If Required Return >15%: Flag as aggressive, suggest alternatives
+• If Total SIP >${(allData.goals.totalMonthlySIPNeeded/1000).toFixed(0)}K: Comment if this seems high relative to income
+• If Monte Carlo <80%: Suggest increasing contributions or extending timeline
+• If Debt Ratio >40%: Prioritize debt paydown
+• If no emergency fund: Make it priority #1
+
+CALCULATION EXAMPLES:
+• Future Value: FV = PV × (1+r)^n
+• SIP needed: (Gap × r/12) / ((1+r/12)^months - 1)
+• If user has multiple goals, analyze trade-offs
+
+Be direct, insightful, and helpful. Use the comprehensive data you have!`;
+
   const contextMessage = {
     role: 'system',
-    content: `You are an AI Financial Advisor for Xtin Gini financial planning app. Help users with:
-- Financial planning questions
-- Retirement calculations
-- Investment advice
-- Budget optimization
-- Goal achievement strategies
-
-User's Current Data:
-- Net Worth: ${utils.formatCurrency(networth.calculateNetWorth())}
-- Total Assets: ${utils.formatCurrency(networth.calculateTotalAssets())}
-- Total Liabilities: ${utils.formatCurrency(networth.calculateTotalLiabilities())}
-- Active Goals: ${appState.goals.length}
-- Goals: ${appState.goals.map(g => `${g.name} (${g.category}, target: ${g.targetYear})`).join(', ') || 'None'}
-
-Provide personalized, actionable advice based on this data. Be concise and helpful.`
+    content: contextText
   };
 
   const fullMessages = [contextMessage, ...messages];
@@ -45,44 +397,138 @@ Provide personalized, actionable advice based on this data. Be concise and helpf
       .join('\n\n');
 
     let response;
-    if (AI_CONFIG.mode === 'proxy') {
-      // Post to your backend proxy (recommended for security)
-      response = await fetch(AI_CONFIG.proxyUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text: transcript })
-      });
-    } else {
-      // Direct client-side call to Google Gemini API (not recommended for production)
-      response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=AIzaSyDAHkEFzhuqYWySQb8x3H2I1nbvYyv4eoM`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: transcript }] }],
-          generationConfig: { temperature: 0.7, maxOutputTokens: 500 }
-        })
-      });
-    }
-    
-    const data = await response.json();
-    
-    // If using proxy, expect a simple { reply } JSON
-    if (data && typeof data.reply === 'string') {
-      return data.reply.trim();
+    let maxRetries = 3;
+    let lastError = null;
+
+    // Retry mechanism with exponential backoff
+    for (let attempt = 0; attempt < maxRetries; attempt++) {
+      try {
+        if (AI_CONFIG.mode === 'proxy') {
+          // Post to your backend proxy (recommended for security)
+          response = await fetch(AI_CONFIG.proxyUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ text: transcript })
+          });
+        } else {
+          // Direct client-side call to Google Gemini 2.0 Flash API (improved endpoint)
+          response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=AIzaSyCp-2RfzhwV6pbf7IHhm1TpHKe5tUCKJQE`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-goog-api-key': 'AIzaSyCp-2RfzhwV6pbf7IHhm1TpHKe5tUCKJQE'
+            },
+            body: JSON.stringify({
+              contents: [{ parts: [{ text: transcript }] }],
+              generationConfig: { 
+                temperature: 0.7, 
+                maxOutputTokens: 150  // Increased for calculations and detailed responses
+              }
+            })
+          });
+        }
+
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        
+        // If using proxy, expect a simple { reply } JSON
+        if (data && typeof data.reply === 'string') {
+          return data.reply.trim();
+        }
+
+        // Handle Gemini API response
+        if (data.candidates && data.candidates[0] && data.candidates[0].content && data.candidates[0].content.parts && data.candidates[0].content.parts[0]) {
+          return data.candidates[0].content.parts[0].text.trim();
+        } else if (data.error && data.error.message) {
+          lastError = data.error.message;
+          if (attempt < maxRetries - 1) {
+            // Wait before retry with exponential backoff
+            await new Promise(resolve => setTimeout(resolve, Math.pow(2, attempt) * 1000));
+            continue;
+          }
+          return `[AI Error] ${data.error.message}`;
+        } else {
+          return '[AI] Sorry, I could not generate a response.';
+        }
+      } catch (fetchError) {
+        lastError = fetchError;
+        if (attempt < maxRetries - 1) {
+          // Exponential backoff: wait 1s, 2s, 4s before retrying
+          await new Promise(resolve => setTimeout(resolve, Math.pow(2, attempt) * 1000));
+          continue;
+        }
+      }
     }
 
-    if (data.candidates && data.candidates[0] && data.candidates[0].content && data.candidates[0].content.parts && data.candidates[0].content.parts[0]) {
-      return data.candidates[0].content.parts[0].text.trim();
-    } else if (data.error && data.error.message) {
-      return `[AI Error] ${data.error.message}`;
-    } else {
-      return '[AI] Sorry, I could not generate a response.';
-    }
+    // If all retries failed
+    throw lastError || new Error('All retry attempts failed');
+
   } catch (error) {
     console.error('AI API Error:', error);
-    return `[AI Error] ${error.message || 'Network error. Please check your connection.'}`;
+    return `[AI Error] ${error.message || 'Network error. Please check your connection and ensure API key is valid.'}`;
+  }
+}
+
+// Sanitize and format AI reply before rendering in chat UI
+function sanitizeAIReply(text) {
+  try {
+    if (!text) return '';
+    // Ensure string
+    let out = String(text);
+
+    // Remove common markdown emphasis (**, *, `)
+    out = out.replace(/\*\*(.*?)\*\*/gs, '$1');
+    out = out.replace(/\*(.*?)\*/gs, '$1');
+    out = out.replace(/`([^`]*)`/g, '$1');
+
+    // Normalize Windows/Unix line endings
+    out = out.replace(/\r\n?/g, '\n');
+
+    // Convert markdown numbered lists (1. ) to '1) ' for readability
+    out = out.replace(/^\s*(\d+)\.\s+/gm, '$1) ');
+
+    // Convert markdown bullets (- or *) at line start to a simple bullet
+    out = out.replace(/^\s*[-\*]\s+/gm, '• ');
+
+    // If text contains a markdown table (lines with pipes and a separator), render as ASCII table
+    const lines = out.split('\n');
+    const hasTable = lines.some((l, i) => l.indexOf('|') >= 0 && lines[i+1] && /^\s*\|?\s*[:-]+/.test(lines[i+1]));
+    if (hasTable) {
+      // Extract contiguous table block
+      let start = 0, end = lines.length - 1;
+      for (let i = 0; i < lines.length; i++) {
+        if (lines[i].indexOf('|') >= 0) { start = i; break; }
+      }
+      for (let i = start; i < lines.length; i++) {
+        if (lines[i].indexOf('|') < 0) { end = i - 1; break; }
+        if (i === lines.length - 1) end = i;
+      }
+      const tableLines = lines.slice(start, end + 1);
+      const rows = tableLines.map(r => r.split('|').map(c => c.trim()).filter((_, idx, arr) => !(idx===0 && arr[0]==='')));
+      // compute col widths
+      const colCount = Math.max(...rows.map(r => r.length));
+      const widths = new Array(colCount).fill(0);
+      rows.forEach(r => { for (let i=0;i<colCount;i++) { const v = (r[i]||''); widths[i] = Math.max(widths[i], v.length); } });
+      // build ascii table
+      const pad = (s,w) => s + ' '.repeat(w - s.length);
+      const ascii = rows.map(r => '| ' + r.map((c,i)=>pad(c||'', widths[i])).join(' | ') + ' |').join('\n');
+      // replace block in out
+      out = lines.slice(0, start).join('\n') + '\n' + ascii + '\n' + lines.slice(end+1).join('\n');
+    }
+
+    // Remove multiple blank lines
+    out = out.replace(/\n{3,}/g, '\n\n');
+
+    // Trim spaces on each line
+    out = out.split('\n').map(l => l.trim()).join('\n');
+
+    return out;
+  } catch (e) {
+    console.error('sanitizeAIReply error', e);
+    return String(text).replace(/\*/g, '');
   }
 }
 
@@ -120,7 +566,9 @@ function setupChatbot() {
     const botDiv = messages.lastChild;
     try {
       const aiReply = await callAIChatAPI(chatHistory);
-      botDiv.textContent = aiReply;
+      // Sanitize and format AI reply for user-friendly display
+      const cleanReply = sanitizeAIReply(typeof aiReply === 'string' ? aiReply : String(aiReply));
+      botDiv.textContent = cleanReply;
     } catch (err) {
       botDiv.textContent = '[AI] Sorry, there was an error.';
     }
@@ -1902,8 +2350,8 @@ const goals = {
         const assignedMember = goal.assignedTo ? appState.familyMembers.find(m => m.id === goal.assignedTo) : null;
         const fundingMember = goal.fundedBy ? appState.familyMembers.find(m => m.id === goal.fundedBy) : null;
         
-        const memberBadge = assignedMember ? `<span style="background: var(--color-primary); color: white; padding: 2px 8px; border-radius: 12px; font-size: 0.75rem; margin-left: 8px;">For: ${assignedMember.name}</span>` : '';
-        const fundingBadge = fundingMember ? `<span style="background: var(--color-success); color: white; padding: 2px 8px; border-radius: 12px; font-size: 0.75rem; margin-left: 8px;">By: ${fundingMember.name} (${goal.fundingSplit || 100}%)</span>` : '';
+        const memberBadge = assignedMember ? `<span style="display: inline-block; background: var(--color-primary); color: white; padding: 3px 8px; border-radius: 12px; font-size: 0.7rem; margin-left: 6px; white-space: nowrap;">For: ${assignedMember.name}</span>` : '';
+        const fundingBadge = fundingMember ? `<span style="display: inline-block; background: var(--color-success); color: white; padding: 3px 8px; border-radius: 12px; font-size: 0.7rem; margin-left: 6px; white-space: nowrap;">By: ${fundingMember.name} (${goal.fundingSplit || 100}%)</span>` : '';
         
         return `
           <div class="goal-card">
@@ -4464,13 +4912,13 @@ const sampleData = {
       // Switch to family planning tab to show the loaded data
       navigation.switchTab('family-planning');
     
-      alert('✅ Comprehensive sample data loaded successfully!\n\n' +
-            '👨‍👩‍👧‍👦 Family: 5 members (2 earners, 2 children, 1 parent)\n' +
-            '💰 Assets: ₹32.3M across 8 accounts with ownership tracking\n' +
-            '🏦 Liabilities: ₹8.5M (home + car loans)\n' +
-            '🎯 Goals: 6 financial goals with member assignments\n' +
-            '👴 Elder Care: 1 parent support plan\n' +
-            '🎓 Education: 2 children\'s education timelines\n\n' +
+      alert('✓ Comprehensive sample data loaded successfully!\n\n' +
+            '• Family: 5 members (2 earners, 2 children, 1 parent)\n' +
+            '• Assets: ₹32.3M across 8 accounts with ownership tracking\n' +
+            '• Liabilities: ₹8.5M (home + car loans)\n' +
+            '• Goals: 6 financial goals with member assignments\n' +
+            '• Elder Care: 1 parent support plan\n' +
+            '• Education: 2 children\'s education timelines\n\n' +
             'Explore the Family Planning tab to see all features!');
   }
 };
