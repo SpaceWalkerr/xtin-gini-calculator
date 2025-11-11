@@ -416,7 +416,7 @@ Be direct, insightful, and helpful. Use the comprehensive data you have!`;
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
-              'X-goog-api-key': 'AIzaSyCp-2RfzhwV6pbf7IHhm1TpHKe5tUCKJQE'
+              'X-goog-api-key': 'AIzaSyAIG0uxgs5fExXAJOg4nLfofWxQBAlLR70'
             },
             body: JSON.stringify({
               contents: [{ parts: [{ text: transcript }] }],
