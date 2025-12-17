@@ -428,8 +428,25 @@ Be direct, insightful, and helpful. Use the comprehensive data you have!`;
           });
         }
 
+        // Handle HTTP errors including 429 (Too Many Requests)
         if (!response.ok) {
-          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+          const status = response.status;
+
+          // Special handling for 429 (Too Many Requests)
+          if (status === 429) {
+            if (attempt < maxRetries - 1) {
+              // Exponential backoff with longer delays for 429
+              const backoffTime = Math.pow(2, attempt) * 5000; // 5s, 10s, 20s, 40s
+              console.log(`Rate limited (429). Retrying in ${backoffTime/1000}s...`);
+              await new Promise(resolve => setTimeout(resolve, backoffTime));
+              continue;
+            } else {
+              return '[AI Error] Rate limit exceeded. Please wait a few minutes before trying again.';
+            }
+          }
+
+          // For other HTTP errors, throw immediately
+          throw new Error(`HTTP ${status}: ${response.statusText}`);
         }
 
         const data = await response.json();
