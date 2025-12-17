@@ -412,11 +412,11 @@ Be direct, insightful, and helpful. Use the comprehensive data you have!`;
           });
         } else {
           // Direct client-side call to Google Gemini 2.0 Flash API (improved endpoint)
-          response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=AIzaSyBEqwkgNviWA3AlYJfGWMZQPJfS5YsYG-Y`, {
+          response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=AIzaSyDjPe3SUAdG3Xwx72V7_C_z9gYbkD4_NUU`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
-              'X-goog-api-key': 'AIzaSyBEqwkgNviWA3AlYJfGWMZQPJfS5YsYG-Y'
+              'X-goog-api-key': 'AIzaSyDjPe3SUAdG3Xwx72V7_C_z9gYbkD4_NUU'
             },
             body: JSON.stringify({
               contents: [{ parts: [{ text: transcript }] }],
